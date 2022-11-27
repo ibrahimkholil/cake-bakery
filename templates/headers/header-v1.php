@@ -63,9 +63,9 @@ if( !$cb_theme_options['bs_enable_tiny_wishlist'] || !class_exists('WooCommerce'
             <div class="header-right ms-4">
 
                     <div class="search-button hidden-phone">
-				  <span>
-				  <i class="fa-solid fa-magnifying-glass"></i>
-				  </span>
+                          <span class="icon">
+
+                          </span>
                     </div>
 
 

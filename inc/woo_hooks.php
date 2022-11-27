@@ -160,7 +160,7 @@ function mydecor_template_loop_product_thumbnail(){
 	if( wp_is_mobile() ){
 		$has_back_image = false;
 	}
-
+//  var_dump($has_back_image);
 	echo '<figure class="' . ($has_back_image?'has-back-image':'no-back-image') . '">';
 		if( !$lazy_load ){
 			echo woocommerce_get_product_thumbnail( $image_size );
@@ -322,7 +322,7 @@ function mydecor_template_loop_short_description(){
 	$grid_limit_words = (int) cb_get_theme_options('ts_prod_cat_desc_words');
 	?>
 	<div class="short-description">
-		<?php mydecor_the_excerpt_max_words($grid_limit_words, '', true, '', true); ?>
+		<?php cb_the_excerpt_max_words($grid_limit_words, '', true, '', true); ?>
 	</div>
 	<?php
 }
@@ -1405,6 +1405,7 @@ if( class_exists('YITH_Woocompare') ){
 			remove_action( 'woocommerce_after_shop_loop_item', array( $yith_woocompare->obj, 'add_compare_link' ), 20 );
 			function mydecor_add_compare_button_to_product_list(){
 				global $yith_woocompare, $product;
+
 				echo '<div class="button-in compare">';
 				echo '<a class="compare" href="'.$yith_woocompare->obj->add_product_url( $product->get_id() ).'" data-product_id="'.$product->get_id().'">'.get_option('yith_woocompare_button_text').'</a>';
 				echo '</div>';

@@ -24,14 +24,14 @@ global $post;
 
 $heading = apply_filters( 'woocommerce_product_description_heading', __( 'Description', 'mydecor' ) );
 
-$enable_more_less = mydecor_get_theme_options('ts_prod_more_less_content');
+$enable_more_less = cb_get_theme_options('ts_prod_more_less_content');
 ?>
 
 <div class="product-content <?php echo esc_attr($enable_more_less?'closed show-more-less':''); ?>">
 	<?php if ( $heading ): ?>
 	<h2><?php echo esc_html( $heading ); ?></h2>
 	<?php endif; ?>
-	
+
 	<?php the_content(); ?>
 </div>
 <?php if( $enable_more_less ): ?>

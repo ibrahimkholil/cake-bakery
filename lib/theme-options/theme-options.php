@@ -2,13 +2,14 @@
 
 class Theme_Options
 {
-private $opt_name = '';
+   private $opt_name = '';
     /**
      * Instance
      *
      * @var $instance
      */
     private static $instance;
+    private  $redux_url = '';
 
     /**
      * Initiator
@@ -21,6 +22,8 @@ private $opt_name = '';
             self::$instance = new self();
         }
         return self::$instance;
+
+
     }
 
 	public function __construct()
@@ -28,6 +31,9 @@ private $opt_name = '';
         $this->opt_name = 'cb_theme_options' ;
 		$this->initThemeOptions();
 		$this->registerSections();
+        if( class_exists('ReduxFramework') ){
+            $this->redux_url = ReduxFramework::$_url;
+        }
 
 		add_action('admin_enqueue_scripts',[$this,'enqueueAssets']);
 	}
@@ -178,7 +184,9 @@ private $opt_name = '';
         $this->headerSection();
 		$this->socialSection();
 		$this->typographySection();
+		$this->colorsScheme();
 		$this->woocommerceTab();
+		$this->singleProduct();
 		$this->footerSection();
         $this->customScripts();
 	}
@@ -286,7 +294,17 @@ private $opt_name = '';
 		) );
 	}
     public function headerSection()
-    {     $header_layout_options = array();
+    {
+        $breadcrumb_layout_options = array();
+        $breadcrumb_image_folder = get_template_directory_uri() . '/lib/theme-options/assets/images/breadcrumbs/';
+        for( $i = 1; $i <= 2; $i++ ){
+            $breadcrumb_layout_options['v' . $i] = array(
+              'alt'  => sprintf(esc_html__('Breadcrumb Layout %s', 'mydecor'), $i)
+            ,'img' => $breadcrumb_image_folder . 'breadcrumb_v'.$i.'.jpg'
+            );
+        }
+
+        $header_layout_options = array();
         $header_image_folder = get_template_directory_uri() . '/lib/theme-options/assets/images/headers/';
         for( $i = 1; $i <= 3; $i++ ){
             $header_layout_options['v' . $i] = array(
@@ -328,58 +346,167 @@ private $opt_name = '';
                     ),
                     'default'  => true,
                 ),
-                array(
-                    'id'       => 'headerTopBg',
-                    'type'     => 'color',
-                    'title'    => __('Header Top Background', 'CAKE_BAKERY'),
-                    'subtitle' => __('Set Header Top Background.', 'CAKE_BAKERY'),
-                    'output'    => array('background-color' => '.sr-header-top')
-                ),
-                array(
-                    'id'       => 'headerNumber',
-                    'type'     => 'text',
-                    'title'    => __('Header Number', 'CAKE_BAKERY'),
-                    'subtitle' => __('Set Header Number.', 'CAKE_BAKERY'),
-                    'desc'     => '',
-                    'default'  => '',
-                    'placeholder'  => 'e.g +015689222',
-                ),
-                array(
-                    'id'       => 'headerEmail',
-                    'type'     => 'text',
-                    'title'    => __('Header Email', 'CAKE_BAKERY'),
-                    'subtitle' => __('Set Header Email.', 'CAKE_BAKERY'),
-                    'desc'     => '',
-                    'default'  => '',
-                    'placeholder'  => 'example@yourdomain.com',
-                ),
-                array(
-                    'id'       => 'headerBtnText',
-                    'type'     => 'text',
-                    'title'    => __('Header Button Text', 'CAKE_BAKERY'),
-                    'subtitle' => __('Set Header Button Text.', 'CAKE_BAKERY'),
-                    'desc'     => '',
-                    'default'  => '',
-                ),
-                array(
-                    'id'       => 'headerBtnUrl',
-                    'type'     => 'text',
-                    'title'    => __('Header Button Link', 'CAKE_BAKERY'),
-                    'subtitle' => __('Set Header Button Link.', 'CAKE_BAKERY'),
-                    'desc'     => 'E.G: http://example.com',
-                    'default'  => '',
-                ),
-                array(
-                    'id'       => 'headerBtnOff',
-                    'type'     => 'switch',
-                    'title'    => __('Header Button  Hide', 'CAKE_BAKERY'),
-                    'subtitle' => __('Set header button on/off', 'CAKE_BAKERY'),
-                    'options' => array(
-                        'on' => __('On',  'CAKE_BAKERY'),
-                        'off' => __('Off',  'CAKE_BAKERY'),
-                    ),
-                    'default'  => true,
+              array(
+                'id'        => 'ts_enable_search'
+              ,'type'     => 'switch'
+              ,'title'    => esc_html__( 'Search Bar', 'mydecor' )
+              ,'subtitle' => ''
+              ,'default'  => true
+              ,'on'		=> esc_html__( 'Enable', 'mydecor' )
+              ,'off'		=> esc_html__( 'Disable', 'mydecor' )
+              )
+            ,array(
+                'id'        => 'ts_search_popular_keywords'
+              ,'type'     => 'textarea'
+              ,'title'    => esc_html__( 'Popular Keywords For Search', 'mydecor' )
+              ,'subtitle' => esc_html__( 'A comma separated list of keywords. Ex: Furniture, Outdoor, Sofa', 'mydecor' )
+              ,'desc'     => ''
+              ,'default'  => ''
+              ,'validate' => 'no_html'
+              ,'required'	=> array( 'ts_enable_search', 'equals', '1' )
+              )
+            ,array(
+                'id'        => 'ts_enable_tiny_wishlist'
+              ,'type'     => 'switch'
+              ,'title'    => esc_html__( 'Wishlist', 'mydecor' )
+              ,'subtitle' => ''
+              ,'default'  => true
+              ,'on'		=> esc_html__( 'Enable', 'mydecor' )
+              ,'off'		=> esc_html__( 'Disable', 'mydecor' )
+              )
+            ,array(
+                'id'        => 'ts_header_currency'
+              ,'type'     => 'switch'
+              ,'title'    => esc_html__( 'Header Currency', 'mydecor' )
+              ,'subtitle' => esc_html__( 'Only available on some header layouts. If you don\'t install WooCommerce Multilingual plugin, it may display demo html', 'mydecor' )
+              ,'default'  => false
+              ,'on'		=> esc_html__( 'Enable', 'mydecor' )
+              ,'off'		=> esc_html__( 'Disable', 'mydecor' )
+              )
+            ,array(
+                'id'        => 'ts_header_language'
+              ,'type'     => 'switch'
+              ,'title'    => esc_html__( 'Header Language', 'mydecor' )
+              ,'subtitle' => esc_html__( 'Only available on some header layouts. If you don\'t install WPML plugin, it may display demo html', 'mydecor' )
+              ,'default'  => false
+              ,'on'		=> esc_html__( 'Enable', 'mydecor' )
+              ,'off'		=> esc_html__( 'Disable', 'mydecor' )
+              )
+            ,array(
+                'id'        => 'ts_enable_tiny_account'
+              ,'type'     => 'switch'
+              ,'title'    => esc_html__( 'My Account', 'mydecor' )
+              ,'subtitle' => ''
+              ,'default'  => true
+              ,'on'		=> esc_html__( 'Enable', 'mydecor' )
+              ,'off'		=> esc_html__( 'Disable', 'mydecor' )
+              )
+            ,array(
+                'id'        => 'ts_enable_tiny_shopping_cart'
+              ,'type'     => 'switch'
+              ,'title'    => esc_html__( 'Shopping Cart', 'mydecor' )
+              ,'subtitle' => ''
+              ,'default'  => true
+              ,'on'		=> esc_html__( 'Enable', 'mydecor' )
+              ,'off'		=> esc_html__( 'Disable', 'mydecor' )
+              )
+            ,array(
+                'id'        => 'ts_shopping_cart_sidebar'
+              ,'type'     => 'switch'
+              ,'title'    => esc_html__( 'Shopping Cart Sidebar', 'mydecor' )
+              ,'subtitle' => esc_html__( 'Show shopping cart in sidebar instead of dropdown. You need to update cart after changing', 'mydecor' )
+              ,'default'  => false
+              ,'on'		=> esc_html__( 'Enable', 'mydecor' )
+              ,'off'		=> esc_html__( 'Disable', 'mydecor' )
+              ,'required'	=> array( 'ts_enable_tiny_shopping_cart', 'equals', '1' )
+              )
+            ,array(
+                'id'        => 'ts_show_shopping_cart_after_adding'
+              ,'type'     => 'switch'
+              ,'title'    => esc_html__( 'Show Shopping Cart After Adding Product To Cart', 'mydecor' )
+              ,'subtitle' => esc_html__( 'You need to enable Ajax add to cart in WooCommerce > Settings > Products', 'mydecor' )
+              ,'default'  => false
+              ,'on'		=> esc_html__( 'Enable', 'mydecor' )
+              ,'off'		=> esc_html__( 'Disable', 'mydecor' )
+              ,'required'	=> array( 'ts_shopping_cart_sidebar', 'equals', '1' )
+              )
+            ,array(
+                'id'        => 'ts_add_to_cart_effect'
+              ,'type'     => 'select'
+              ,'title'    => esc_html__( 'Add To Cart Effect', 'mydecor' )
+              ,'subtitle' => esc_html__( 'You need to enable Ajax add to cart in WooCommerce > Settings > Products. If "Show Shopping Cart After Adding Product To Cart" is enabled, this option will be disabled', 'mydecor' )
+              ,'options'  => array(
+                  '0'				=> esc_html__( 'None', 'mydecor' )
+                ,'fly_to_cart'	=> esc_html__( 'Fly To Cart', 'mydecor' )
+                ,'show_popup'	=> esc_html__( 'Show Popup', 'mydecor' )
                 )
+              ,'default'  => '0'
+              ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+              )
+
+            ,array(
+                'id'        => 'section-breadcrumb-options'
+              ,'type'     => 'section'
+              ,'title'    => esc_html__( 'Breadcrumb Options', 'mydecor' )
+              ,'subtitle' => ''
+              ,'indent'   => false
+              )
+            ,array(
+                'id'        => 'ts_breadcrumb_layout'
+              ,'type'     => 'image_select'
+              ,'title'    => esc_html__( 'Breadcrumb Layout', 'mydecor' )
+              ,'subtitle' => ''
+              ,'desc'     => ''
+              ,'options'  => $breadcrumb_layout_options
+              ,'default'  => 'v1'
+              )
+            ,array(
+                'id'        => 'ts_enable_breadcrumb_background_image'
+              ,'type'     => 'switch'
+              ,'title'    => esc_html__( 'Enable Breadcrumbs Background Image', 'mydecor' )
+              ,'subtitle' => esc_html__( 'You can set background color by going to Color Scheme tab > Breadcrumb Colors section', 'mydecor' )
+              ,'default'  => true
+              )
+            ,array(
+                'id'        => 'ts_bg_breadcrumbs'
+              ,'type'     => 'media'
+              ,'url'      => true
+              ,'title'    => esc_html__( 'Breadcrumbs Background Image', 'mydecor' )
+              ,'desc'     => ''
+              ,'subtitle' => esc_html__( 'Select a new image to override the default background image', 'mydecor' )
+              ,'readonly' => false
+              ,'default'  => array( 'url' => '' )
+              )
+            ,array(
+                'id'        => 'ts_breadcrumb_bg_parallax'
+              ,'type'     => 'switch'
+              ,'title'    => esc_html__( 'Enable Breadcrumbs Background Parallax', 'mydecor' )
+              ,'subtitle' => ''
+              ,'default'  => false
+              )
+
+            ,array(
+                'id'        => 'section-mobile-bottom-bar'
+              ,'type'     => 'section'
+              ,'title'    => esc_html__( 'Mobile Bottom Bar', 'mydecor' )
+              ,'subtitle' => ''
+              ,'indent'   => false
+              )
+            ,array(
+                'id'        => 'ts_mobile_bottom_bar_custom_content'
+              ,'type'     => 'editor'
+              ,'title'    => esc_html__( 'Mobile Bottom Bar Custom Content', 'mydecor' )
+              ,'subtitle' => esc_html__( 'You can add more buttons or custom content to bottom bar on mobile', 'mydecor' )
+              ,'desc'     => ''
+              ,'default'  => ''
+              ,'args'     => array(
+                  'wpautop'        => false
+                ,'media_buttons' => true
+                ,'textarea_rows' => 5
+                ,'teeny'         => false
+                ,'quicktags'     => true
+                )
+              )
             )
         ));
     }
@@ -516,236 +643,565 @@ private $opt_name = '';
 	}
 	public function typographySection()
 	{
+        $family_fonts = array(
+          "Arial, Helvetica, sans-serif"                          => "Arial, Helvetica, sans-serif"
+        ,"'Arial Black', Gadget, sans-serif"                    => "'Arial Black', Gadget, sans-serif"
+        ,"'Bookman Old Style', serif"                           => "'Bookman Old Style', serif"
+        ,"'Comic Sans MS', cursive"                             => "'Comic Sans MS', cursive"
+        ,"Courier, monospace"                                   => "Courier, monospace"
+        ,"Garamond, serif"                                      => "Garamond, serif"
+        ,"Georgia, serif"                                       => "Georgia, serif"
+        ,"Impact, Charcoal, sans-serif"                         => "Impact, Charcoal, sans-serif"
+        ,"'Lucida Console', Monaco, monospace"                  => "'Lucida Console', Monaco, monospace"
+        ,"'Lucida Sans Unicode', 'Lucida Grande', sans-serif"   => "'Lucida Sans Unicode', 'Lucida Grande', sans-serif"
+        ,"'MS Sans Serif', Geneva, sans-serif"                  => "'MS Sans Serif', Geneva, sans-serif"
+        ,"'MS Serif', 'New York', sans-serif"                   => "'MS Serif', 'New York', sans-serif"
+        ,"'Palatino Linotype', 'Book Antiqua', Palatino, serif" => "'Palatino Linotype', 'Book Antiqua', Palatino, serif"
+        ,"Tahoma,Geneva, sans-serif"                            => "Tahoma, Geneva, sans-serif"
+        ,"'Times New Roman', Times,serif"                       => "'Times New Roman', Times, serif"
+        ,"'Trebuchet MS', Helvetica, sans-serif"                => "'Trebuchet MS', Helvetica, sans-serif"
+        ,"Verdana, Geneva, sans-serif"                          => "Verdana, Geneva, sans-serif"
+        ,"CustomFont"                          					=> "CustomFont"
+        );
         \Redux::setSection(  $this->opt_name, array(
             'title'  => __( 'Typography', 'CAKE_BAKERY' ),
             'id'     => 'typography',
             'icon'   => 'el el-font',
             'fields' => array(
-                array(
-                    'id'       => 'sorinBodyFont',
-                    'type'     => 'typography',
-                    'title'    => __( 'Body Font', 'CAKE_BAKERY' ),
-                    'subtitle' => __( 'Specify the body font properties.', 'CAKE_BAKERY' ),
-                    'google'   => true,
-                    'subsets'       => false,
-                    'output' => array('body'),
-                    'default'  => array(
-                        'color'       => '#dd9933',
-                        'font-size'   => '30px',
-                        'font-family' => 'Arial,Helvetica,sans-serif',
-                        'font-weight' => 'Normal',
-                    ),
-                ),
-                array(
-                    'id'          => 'sorinHeadingOne',
-                    'type'        => 'typography',
-                    'title'       => __( 'Heading H1', 'CAKE_BAKERY' ),
-                    //'compiler'      => true,  // Use if you want to hook in your own CSS compiler
-                    //'google'      => false,
-                    // Disable google fonts. Won't work if you haven't defined your google api key
-                    'font-backup' => true,
-                    // Select a backup non-google font in addition to a google font
-                    //'font-style'    => false, // Includes font-style and weight. Can use font-style or font-weight to declare
-                    'subsets'       => false, // Only appears if google is true and subsets not set to false
-                    //'font-size'     => false,
-                    //'line-height'   => false,
-                    //'word-spacing'  => true,  // Defaults to false
-                    //'letter-spacing'=> true,  // Defaults to false
-                    //'color'         => false,
-                    //'preview'       => false, // Disable the previewer
-                    'all_styles'  => true,
-                    // Enable all Google Font style/weight variations to be added to the page
-                    'output'      => array( '.site-title, h1' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'compiler'    => array( 'site-title-compiler' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'units'       => 'px',
-                    // Defaults to px
-                    'subtitle'    => __( 'Typography option with each property can be called individually.', 'CAKE_BAKERY' ),
-                    'default'     => array(
-                        'color'       => '#333',
-                        'font-style'  => '700',
-                        'font-family' => 'Abel',
-                        'google'      => true,
-                        'font-size'   => '33px',
-                        'line-height' => '40px'
-                    ),
-                ),
-                array(
-                    'id'          => 'sorinHeadingTwo',
-                    'type'        => 'typography',
-                    'title'       => __( 'Heading H2', 'CAKE_BAKERY' ),
-                    //'compiler'      => true,  // Use if you want to hook in your own CSS compiler
-                    //'google'      => false,
-                    // Disable google fonts. Won't work if you haven't defined your google api key
-                    'font-backup' => true,
-                    // Select a backup non-google font in addition to a google font
-                    //'font-style'    => false, // Includes font-style and weight. Can use font-style or font-weight to declare
-                    'subsets'       => false, // Only appears if google is true and subsets not set to false
-                    //'font-size'     => false,
-                    //'line-height'   => false,
-                    //'word-spacing'  => true,  // Defaults to false
-                    //'letter-spacing'=> true,  // Defaults to false
-                    //'color'         => false,
-                    //'preview'       => false, // Disable the previewer
-                    'all_styles'  => true,
-                    // Enable all Google Font style/weight variations to be added to the page
-                    'output'      => array( '.site-title' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'compiler'    => array( 'site-title-compiler' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'units'       => 'px',
-                    // Defaults to px
-                    'subtitle'    => __( 'Typography option with each property can be called individually.', 'CAKE_BAKERY' ),
-                    'default'     => array(
-                        'color'       => '#333',
-                        'font-style'  => '700',
-                        'font-family' => 'Abel',
-                        'google'      => true,
-                        'font-size'   => '33px',
-                        'line-height' => '40px'
-                    ),
-                ),
-                array(
-                    'id'          => 'sorinHeadingThree',
-                    'type'        => 'typography',
-                    'title'       => __( 'Heading H3', 'CAKE_BAKERY' ),
-                    //'compiler'      => true,  // Use if you want to hook in your own CSS compiler
-                    //'google'      => false,
-                    // Disable google fonts. Won't work if you haven't defined your google api key
-                    'font-backup' => true,
-                    // Select a backup non-google font in addition to a google font
-                    //'font-style'    => false, // Includes font-style and weight. Can use font-style or font-weight to declare
-                    'subsets'       => false, // Only appears if google is true and subsets not set to false
-                    //'font-size'     => false,
-                    //'line-height'   => false,
-                    //'word-spacing'  => true,  // Defaults to false
-                    //'letter-spacing'=> true,  // Defaults to false
-                    //'color'         => false,
-                    //'preview'       => false, // Disable the previewer
-                    'all_styles'  => true,
-                    // Enable all Google Font style/weight variations to be added to the page
-                    'output'      => array( '.site-title' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'compiler'    => array( 'site-title-compiler' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'units'       => 'px',
-                    // Defaults to px
-                    'subtitle'    => __( 'Typography option with each property can be called individually.', 'CAKE_BAKERY' ),
-                    'default'     => array(
-                        'color'       => '#333',
-                        'font-style'  => '700',
-                        'font-family' => 'Abel',
-                        'google'      => true,
-                        'font-size'   => '33px',
-                        'line-height' => '40px'
-                    ),
-                ),
-                array(
-                    'id'          => 'sorinHeadingFour',
-                    'type'        => 'typography',
-                    'title'       => __( 'Heading H4', 'CAKE_BAKERY' ),
-                    //'compiler'      => true,  // Use if you want to hook in your own CSS compiler
-                    //'google'      => false,
-                    // Disable google fonts. Won't work if you haven't defined your google api key
-                    'font-backup' => true,
-                    // Select a backup non-google font in addition to a google font
-                    //'font-style'    => false, // Includes font-style and weight. Can use font-style or font-weight to declare
-                    'subsets'       => false, // Only appears if google is true and subsets not set to false
-                    //'font-size'     => false,
-                    //'line-height'   => false,
-                    //'word-spacing'  => true,  // Defaults to false
-                    //'letter-spacing'=> true,  // Defaults to false
-                    //'color'         => false,
-                    //'preview'       => false, // Disable the previewer
-                    'all_styles'  => true,
-                    // Enable all Google Font style/weight variations to be added to the page
-                    'output'      => array( '.site-title' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'compiler'    => array( 'site-title-compiler' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'units'       => 'px',
-                    // Defaults to px
-                    'subtitle'    => __( 'Typography option with each property can be called individually.', 'CAKE_BAKERY' ),
-                    'default'     => array(
-                        'color'       => '#333',
-                        'font-style'  => '700',
-                        'font-family' => 'Abel',
-                        'google'      => true,
-                        'font-size'   => '33px',
-                        'line-height' => '40px'
-                    ),
-                ),
-                array(
-                    'id'          => 'sorinHeadingFive',
-                    'type'        => 'typography',
-                    'title'       => __( 'Heading H5', 'CAKE_BAKERY' ),
-                    //'compiler'      => true,  // Use if you want to hook in your own CSS compiler
-                    //'google'      => false,
-                    // Disable google fonts. Won't work if you haven't defined your google api key
-                    'font-backup' => true,
-                    // Select a backup non-google font in addition to a google font
-                    //'font-style'    => false, // Includes font-style and weight. Can use font-style or font-weight to declare
-                    'subsets'       => false, // Only appears if google is true and subsets not set to false
-                    //'font-size'     => false,
-                    //'line-height'   => false,
-                    //'word-spacing'  => true,  // Defaults to false
-                    //'letter-spacing'=> true,  // Defaults to false
-                    //'color'         => false,
-                    //'preview'       => false, // Disable the previewer
-                    'all_styles'  => true,
-                    // Enable all Google Font style/weight variations to be added to the page
-                    'output'      => array( '.site-title' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'compiler'    => array( 'site-title-compiler' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'units'       => 'px',
-                    // Defaults to px
-                    'subtitle'    => __( 'Typography option with each property can be called individually.', 'CAKE_BAKERY' ),
-                    'default'     => array(
-                        'color'       => '#333',
-                        'font-style'  => '700',
-                        'font-family' => 'Abel',
-                        'google'      => true,
-                        'font-size'   => '33px',
-                        'line-height' => '40px'
-                    ),
-                ),
-                array(
-                    'id'          => 'sorinHeadingSix',
-                    'type'        => 'typography',
-                    'title'       => __( 'Heading H6', 'CAKE_BAKERY' ),
-                    //'compiler'      => true,  // Use if you want to hook in your own CSS compiler
-                    //'google'      => false,
-                    // Disable google fonts. Won't work if you haven't defined your google api key
-                    'font-backup' => true,
-                    // Select a backup non-google font in addition to a google font
-                    //'font-style'    => false, // Includes font-style and weight. Can use font-style or font-weight to declare
-                    'subsets'       => false, // Only appears if google is true and subsets not set to false
-                    //'font-size'     => false,
-                    //'line-height'   => false,
-                    //'word-spacing'  => true,  // Defaults to false
-                    //'letter-spacing'=> true,  // Defaults to false
-                    //'color'         => false,
-                    //'preview'       => false, // Disable the previewer
-                    'all_styles'  => true,
-                    // Enable all Google Font style/weight variations to be added to the page
-                    'output'      => array( '.site-title' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'compiler'    => array( 'site-title-compiler' ),
-                    // An array of CSS selectors to apply this font style to dynamically
-                    'units'       => 'px',
-                    // Defaults to px
-                    'subtitle'    => __( 'Typography option with each property can be called individually.', 'CAKE_BAKERY' ),
-                    'default'     => array(
-                        'color'       => '#333',
-                        'font-style'  => '700',
-                        'font-family' => 'Abel',
-                        'google'      => true,
-                        'font-size'   => '33px',
-                        'line-height' => '40px'
-                    ),
-                ),
+              array(
+                  'id'       			=> 'ts_body_font'
+                ,'type'     		=> 'typography'
+                ,'title'    		=> esc_html__( 'Body Font', 'mydecor' )
+                ,'subtitle' 		=> ''
+                ,'google'   		=> true
+                ,'font-style'   	=> true
+                ,'text-align'   	=> false
+                ,'color'   			=> false
+                ,'letter-spacing' 	=> true
+                ,'preview'			=> array('always_display' => true)
+                ,'default'  		=> array(
+                    'font-family'  		=> 'Jost'
+                  ,'font-weight' 		=> '400'
+                  ,'font-size'   		=> '16px'
+                  ,'line-height' 		=> '28px'
+                  ,'letter-spacing' 	=> '0'
+                  ,'font-style'   	=> ''
+                  ,'google'	   		=> true
+                  )
+                ,'fonts'	=> $family_fonts
+                ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 20)
+                )
+              ,array(
+                  'id'       			=> 'ts_heading_font'
+                ,'type'     		=> 'typography'
+                ,'title'    		=> esc_html__( 'Heading Font', 'mydecor' )
+                ,'subtitle' 		=> ''
+                ,'google'   		=> true
+                ,'font-style'   	=> false
+                ,'text-align'   	=> false
+                ,'color'   			=> false
+                ,'line-height'  	=> false
+                ,'font-size'    	=> false
+                ,'letter-spacing' 	=> true
+                ,'preview'			=> array('always_display' => true)
+                ,'default'  			=> array(
+                    'font-family'  		=> 'Jost'
+                  ,'font-weight' 		=> '600'
+                  ,'letter-spacing' 	=> '0'
+                  ,'google'	   		=> true
+                  )
+                ,'fonts'	=> $family_fonts
+                ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 20)
+                )
+              ,array(
+                  'id'       			=> 'ts_menu_font'
+                ,'type'     		=> 'typography'
+                ,'title'    		=> esc_html__( 'Menu Font', 'mydecor' )
+                ,'subtitle' 		=> ''
+                ,'google'   		=> true
+                ,'font-style'   	=> false
+                ,'text-align'   	=> false
+                ,'color'   			=> false
+                ,'letter-spacing' 	=> true
+                ,'preview'			=> array('always_display' => true)
+                ,'default'  			=> array(
+                    'font-family'  		=> 'Jost'
+                  ,'font-weight' 		=> '500'
+                  ,'font-size'   		=> '16px'
+                  ,'line-height' 		=> '22px'
+                  ,'letter-spacing' 	=> '0'
+                  ,'google'	   		=> true
+                  )
+                ,'fonts'	=> $family_fonts
+                ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 20)
+                )
+              ,array(
+                  'id'       			=> 'ts_sub_menu_font'
+                ,'type'     		=> 'typography'
+                ,'title'    		=> esc_html__( 'Sub Menu Font', 'mydecor' )
+                ,'subtitle' 		=> ''
+                ,'google'   		=> true
+                ,'font-style'   	=> false
+                ,'text-align'   	=> false
+                ,'color'   			=> false
+                ,'letter-spacing' 	=> true
+                ,'preview'			=> array('always_display' => true)
+                ,'default'  			=> array(
+                    'font-family'  		=> 'Jost'
+                  ,'font-weight' 		=> '400'
+                  ,'font-size'   		=> '16px'
+                  ,'line-height' 		=> '22px'
+                  ,'letter-spacing' 	=> '0'
+                  ,'google'	   		=> true
+                  )
+                ,'fonts'	=> $family_fonts
+                ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 20)
+                )
+              ,array(
+                  'id'        => 'section-custom-font'
+                ,'type'     => 'section'
+                ,'title'    => esc_html__( 'Custom Font', 'mydecor' )
+                ,'subtitle' => esc_html__( 'If you get the error message \'Sorry, this file type is not permitted for security reasons\', you can add this line define(\'ALLOW_UNFILTERED_UPLOADS\', true); to the wp-config.php file', 'mydecor' )
+                ,'indent'   => false
+                )
+              ,array(
+                  'id'        => 'ts_custom_font_ttf'
+                ,'type'     => 'media'
+                ,'url'      => true
+                ,'preview'  => false
+                ,'title'    => esc_html__( 'Custom Font ttf', 'mydecor' )
+                ,'desc'     => ''
+                ,'subtitle' => esc_html__( 'Upload the .ttf font file. To use it, you select CustomFont in the Standard Fonts group', 'mydecor' )
+                ,'default'  => array( 'url' => '' )
+                ,'mode'		=> 'application'
+                )
+
+              ,array(
+                  'id'        => 'section-font-sizes'
+                ,'type'     => 'section'
+                ,'title'    => esc_html__( 'Font Sizes', 'mydecor' )
+                ,'subtitle' => ''
+                ,'indent'   => false
+                )
+              ,array(
+                  'id'      => 'info-font-size-pc'
+                ,'type'   => 'info'
+                ,'notice' => false
+                ,'title'  => esc_html__( 'Font size on PC', 'mydecor' )
+                ,'desc'   => ''
+                )
+              ,array(
+                  'id'       		=> 'ts_h1_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H1 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-size'   => '72px'
+                  ,'line-height' => '80px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h2_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H2 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-size'   => '46px'
+                  ,'line-height' => '54px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h3_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H3 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-size'   => '32px'
+                  ,'line-height' => '44px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h4_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H4 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-size'   => '24px'
+                  ,'line-height' => '34px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h5_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H5 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-size'   		=> '20px'
+                  ,'line-height' 		=> '28px'
+                  ,'google'	   		=> false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h6_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H6 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-size'   	=> '18px'
+                  ,'line-height' 	=> '26px'
+                  ,'google'	  	=> false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_small_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'Small Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'line-height'	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-size'   => '13px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_button_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'Button Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'line-height'  => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-size'   => '13px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h1_ipad_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H1 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '52px'
+                  ,'line-height' => '60px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h2_ipad_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H2 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '32px'
+                  ,'line-height' => '40px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h3_ipad_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H3 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '24px'
+                  ,'line-height' => '34px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h4_ipad_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H4 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '20px'
+                  ,'line-height' => '28px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h5_ipad_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H5 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '18px'
+                  ,'line-height' => '26px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h6_ipad_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H6 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '16px'
+                  ,'line-height' => '22px'
+                  ,'google'	   => false
+                  )
+                )
+
+              ,array(
+                  'id'      => 'info-font-size-mobile'
+                ,'type'   => 'info'
+                ,'notice' => false
+                ,'title'  => esc_html__( 'Font size on Mobile', 'mydecor' )
+                ,'desc'   => ''
+                )
+              ,array(
+                  'id'       		=> 'ts_h1_mobile_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H1 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '42px'
+                  ,'line-height' => '50px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h2_mobile_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H2 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '32px'
+                  ,'line-height' => '40px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h3_mobile_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H3 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '24px'
+                  ,'line-height' => '34px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h4_mobile_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H4 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '20px'
+                  ,'line-height' => '28px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h5_mobile_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H5 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '18px'
+                  ,'line-height' => '26px'
+                  ,'google'	   => false
+                  )
+                )
+              ,array(
+                  'id'       		=> 'ts_h6_mobile_font'
+                ,'type'     	=> 'typography'
+                ,'title'    	=> esc_html__( 'H6 Font Size', 'mydecor' )
+                ,'subtitle' 	=> ''
+                ,'class' 		=> 'typography-no-preview'
+                ,'google'   	=> false
+                ,'font-family'  => false
+                ,'font-weight'  => false
+                ,'font-style'   => false
+                ,'text-align'   => false
+                ,'color'   		=> false
+                ,'preview'		=> array('always_display' => false)
+                ,'default'  	=> array(
+                    'font-family'  => ''
+                  ,'font-weight' => ''
+                  ,'font-size'   => '16px'
+                  ,'line-height' => '24px'
+                  ,'google'	   => false
+                  )
+                )
             )
         ) );
 	}
@@ -764,11 +1220,11 @@ private $opt_name = '';
                     'options'  => array(
                         '1'      => array(
                             'alt'   => '1 Column',
-                            'img'   => CAKE_BAKERY_THEME_URI . '/lib/theme-options/assets/images/1col.png'
+                            'img'   => CAKE_BAKERY_THEME_URI . 'lib/theme-options/assets/images/1col.png'
                         ),
                         '2'      => array(
                             'alt'   => '2 Column Left',
-                            'img'   => CAKE_BAKERY_THEME_URI . '/lib/theme-options/assets/images/2cl.png'
+                            'img'   => CAKE_BAKERY_THEME_URI . 'lib/theme-options/assets/images/2cl.png'
                         ),
                         '3'      => array(
                             'alt'   => '2 Column Right',
@@ -805,121 +1261,8 @@ private $opt_name = '';
           'id'     => 'woocommerce_tab',
           'icon'   => 'el el-shopping-cart',
            'fields'=> array(
+
              array(
-               'id'        => 'section-product-label'
-             ,'type'     => 'section'
-             ,'title'    => esc_html__( 'Product Label', 'mydecor' )
-             ,'subtitle' => ''
-             ,'indent'   => false
-             )
-           ,array(
-               'id'       	=> 'ts_product_label_style'
-             ,'type'     => 'select'
-             ,'title'    => esc_html__( 'Product Label Style', 'mydecor' )
-             ,'subtitle' => ''
-             ,'desc'     => ''
-             ,'options'  => array(
-                 'rectangle' 	=> esc_html__( 'Rectangle', 'mydecor' )
-               ,'circle' 		=> esc_html__( 'Circle', 'mydecor' )
-               )
-             ,'default'  => 'rectangle'
-             ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
-             )
-           ,array(
-               'id'        => 'ts_product_show_new_label'
-             ,'type'     => 'switch'
-             ,'title'    => esc_html__( 'Product New Label', 'mydecor' )
-             ,'subtitle' => ''
-             ,'default'  => false
-             ,'on'		=> esc_html__( 'Show', 'mydecor' )
-             ,'off'		=> esc_html__( 'Hide', 'mydecor' )
-             )
-           ,array(
-               'id'        => 'ts_product_new_label_text'
-             ,'type'     => 'text'
-             ,'title'    => esc_html__( 'Product New Label Text', 'mydecor' )
-             ,'subtitle' => ''
-             ,'desc'     => ''
-             ,'default'  => 'New'
-             ,'required'	=> array( 'ts_product_show_new_label', 'equals', '1' )
-             )
-           ,array(
-               'id'        => 'ts_product_show_new_label_time'
-             ,'type'     => 'text'
-             ,'title'    => esc_html__( 'Product New Label Time', 'mydecor' )
-             ,'subtitle' => esc_html__( 'Number of days which you want to show New label since product is published', 'mydecor' )
-             ,'desc'     => ''
-             ,'default'  => '30'
-             ,'required'	=> array( 'ts_product_show_new_label', 'equals', '1' )
-             )
-           ,array(
-               'id'        => 'ts_product_sale_label_text'
-             ,'type'     => 'text'
-             ,'title'    => esc_html__( 'Product Sale Label Text', 'mydecor' )
-             ,'subtitle' => ''
-             ,'desc'     => ''
-             ,'default'  => 'Sale'
-             )
-           ,array(
-               'id'        => 'ts_product_feature_label_text'
-             ,'type'     => 'text'
-             ,'title'    => esc_html__( 'Product Feature Label Text', 'mydecor' )
-             ,'subtitle' => ''
-             ,'desc'     => ''
-             ,'default'  => 'Hot'
-             )
-           ,array(
-               'id'        => 'ts_product_out_of_stock_label_text'
-             ,'type'     => 'text'
-             ,'title'    => esc_html__( 'Product Out Of Stock Label Text', 'mydecor' )
-             ,'subtitle' => ''
-             ,'desc'     => ''
-             ,'default'  => 'Sold out'
-             )
-           ,array(
-               'id'       	=> 'ts_show_sale_label_as'
-             ,'type'     => 'select'
-             ,'title'    => esc_html__( 'Show Sale Label As', 'mydecor' )
-             ,'subtitle' => ''
-             ,'desc'     => ''
-             ,'options'  => array(
-                 'text' 		=> esc_html__( 'Text', 'mydecor' )
-               ,'number' 	=> esc_html__( 'Number', 'mydecor' )
-               ,'percent' 	=> esc_html__( 'Percent', 'mydecor' )
-               )
-             ,'default'  => 'text'
-             ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
-             )
-
-           ,array(
-               'id'        => 'section-product-rating'
-             ,'type'     => 'section'
-             ,'title'    => esc_html__( 'Product Rating', 'mydecor' )
-             ,'subtitle' => ''
-             ,'indent'   => false
-             )
-           ,array(
-               'id'       	=> 'ts_product_rating_style'
-             ,'type'     => 'select'
-             ,'title'    => esc_html__( 'Product Rating Style', 'mydecor' )
-             ,'subtitle' => ''
-             ,'desc'     => ''
-             ,'options'  => array(
-                 'border' 		=> esc_html__( 'Border', 'mydecor' )
-               ,'fill' 		=> esc_html__( 'Fill', 'mydecor' )
-               )
-             ,'default'  => 'fill'
-             ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
-             )
-
-           ,array(
-               'id'        => 'section-product-hover'
-             ,'type'     => 'section'
-             ,'title'    => esc_html__( 'Product Hover', 'mydecor' )
-             ,'subtitle' => ''
-             ,'indent'   => false
-             )
-           ,array(
                'id'       	=> 'ts_product_hover_style'
              ,'type'     => 'select'
              ,'title'    => esc_html__( 'Hover Style', 'mydecor' )
@@ -1070,6 +1413,1601 @@ private $opt_name = '';
               ,'default'  => ''
               )
           )
+        ));
+    }
+    public function singleProduct(){
+        $breadcrumb_layout_options = array();
+        $breadcrumb_image_folder = get_template_directory_uri() . '/lib/theme-options/assets/images/breadcrumbs/';
+        for( $i = 1; $i <= 2; $i++ ){
+            $breadcrumb_layout_options['v' . $i] = array(
+              'alt'  => sprintf(esc_html__('Breadcrumb Layout %s', 'mydecor'), $i)
+            ,'img' => $breadcrumb_image_folder . 'breadcrumb_v'.$i.'.jpg'
+            );
+        }
+
+        $sidebar_options = array();
+        $default_sidebars = mydecor_get_list_sidebars();
+        if( is_array($default_sidebars) ){
+            foreach( $default_sidebars as $key => $_sidebar ){
+                $sidebar_options[$_sidebar['id']] = $_sidebar['name'];
+            }
+        }
+        \Redux::setSection(  $this->opt_name, array(
+          'title'  => __( 'Single Product', 'CAKE_BAKERY' ),
+          'id'     => 'single_product_details',
+          'icon'   => 'el el-edit',
+         'fields'=> array(
+
+           array(
+             'id'        => 'ts_prod_layout'
+           ,'type'     => 'image_select'
+           ,'title'    => esc_html__( 'Product Layout', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'options'  => array(
+             '0-1-0' => array(
+               'alt'  => esc_html__('Fullwidth', 'mydecor')
+             ,'img' =>CAKE_BAKERY_THEME_URI.'/lib/theme-options/assets/images/1col.png'
+             )
+           ,'1-1-0' => array(
+               'alt'  => esc_html__('Left Sidebar', 'mydecor')
+             ,'img' => CAKE_BAKERY_THEME_URI.'/lib/theme-options/assets/images/2cl.png'
+             )
+           ,'0-1-1' => array(
+               'alt'  => esc_html__('Right Sidebar', 'mydecor')
+             ,'img' => CAKE_BAKERY_THEME_URI.'/lib/theme-options/assets/images/2cr.png'
+             )
+           ,'1-1-1' => array(
+               'alt'  => esc_html__('Left & Right Sidebar', 'mydecor')
+             ,'img' => CAKE_BAKERY_THEME_URI.'/lib/theme-options/assets/images/3cm.png'
+             )
+           )
+           ,'default'  => '0-1-0'
+           )
+         ,array(
+             'id'       	=> 'ts_prod_left_sidebar'
+           ,'type'     => 'select'
+           ,'title'    => esc_html__( 'Left Sidebar', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'options'  => $sidebar_options
+           ,'default'  => 'product-detail-sidebar'
+           ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+           )
+         ,array(
+             'id'       	=> 'ts_prod_right_sidebar'
+           ,'type'     => 'select'
+           ,'title'    => esc_html__( 'Right Sidebar', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'options'  => $sidebar_options
+           ,'default'  => 'product-detail-sidebar'
+           ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+           )
+         ,array(
+             'id'        => 'ts_prod_breadcrumb'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Breadcrumb', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           )
+         ,array(
+             'id'        => 'ts_prod_cloudzoom'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Cloud Zoom', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           )
+         ,array(
+             'id'        => 'ts_prod_lightbox'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Lightbox', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           )
+         ,array(
+             'id'        => 'ts_prod_attr_dropdown'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Attribute Dropdown', 'mydecor' )
+           ,'subtitle' => esc_html__( 'If you turn it off, the dropdown will be replaced by image or text label', 'mydecor' )
+           ,'default'  => true
+           )
+         ,array(
+             'id'        => 'ts_prod_attr_color_text'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Attribute Color Text', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Show text for the Color attribute instead of color/color image', 'mydecor' )
+           ,'default'  => false
+           ,'required'	=> array( 'ts_prod_attr_dropdown', 'equals', '0' )
+           )
+         ,array(
+             'id'        => 'ts_prod_summary_2_columns'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Summary 2 Columns', 'mydecor' )
+           ,'subtitle' => esc_html__( 'If product has sidebar, this option will be disabled', 'mydecor' )
+           ,'default'  => false
+           )
+         ,array(
+             'id'        => 'ts_prod_next_prev_navigation'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Next/Prev Product Navigation', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_thumbnail'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Thumbnail', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_label'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Label', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_title'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Title', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_title_in_content'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Title In Content', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Display the product title in the page content instead of above the breadcrumbs', 'mydecor' )
+           ,'default'  => true
+           )
+         ,array(
+             'id'        => 'ts_prod_rating'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Rating', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_excerpt'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Excerpt', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_count_down'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Count Down', 'mydecor' )
+           ,'subtitle' => esc_html__( 'You have to activate ThemeSky plugin', 'mydecor' )
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_price'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Price', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_add_to_cart'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Add To Cart Button', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_ajax_add_to_cart'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Ajax Add To Cart', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'required'	=> array( 'ts_prod_add_to_cart', 'equals', '1' )
+           )
+         ,array(
+             'id'        => 'ts_prod_buy_now'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Buy Now Button', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Only support the simple and variable products', 'mydecor' )
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_sku'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product SKU', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_availability'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Availability', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_sold_number'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Sold Number', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_brand'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Brands', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Categories', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_tag'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Tags', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_sharing'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Sharing', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_sharing_sharethis'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Sharing - Use ShareThis', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Use share buttons from sharethis.com. You need to add key below', 'mydecor' )
+           ,'default'  => false
+           ,'required'	=> array( 'ts_prod_sharing', 'equals', '1' )
+           )
+         ,array(
+             'id'        => 'ts_prod_sharing_sharethis_key'
+           ,'type'     => 'text'
+           ,'title'    => esc_html__( 'Product Sharing - ShareThis Key', 'mydecor' )
+           ,'subtitle' => esc_html__( 'You get it from script code. It is the value of "property" attribute', 'mydecor' )
+           ,'desc'     => ''
+           ,'default'  => ''
+           ,'required'	=> array( 'ts_prod_sharing', 'equals', '1' )
+           )
+         ,array(
+             'id'        => 'ts_prod_size_chart'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Size Chart', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'       	=> 'ts_prod_size_chart_style'
+           ,'type'     => 'select'
+           ,'title'    => esc_html__( 'Product Size Chart Style', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Modal Popup is only available if the slug of the Size attribute is "size" and Attribute Dropdown is disabled', 'mydecor' )
+           ,'desc'     => ''
+           ,'options'  => array(
+               'popup'		=> esc_html__( 'Modal Popup', 'mydecor' )
+             ,'tab'		=> esc_html__( 'Additional Tab', 'mydecor' )
+             )
+           ,'default'  => 'popup'
+           ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+           ,'required'	=> array( 'ts_prod_size_chart', 'equals', '1' )
+           )
+         ,array(
+             'id'        => 'ts_prod_more_less_content'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product More/Less Content', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Show more/less content in the Description tab', 'mydecor' )
+           ,'default'  => true
+           )
+         ,array(
+             'id'        => 'ts_prod_wfbt_in_summary'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Frequently Bought Together In Summary', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Move Frequently Bought Together to product summary', 'mydecor' )
+           ,'default'  => false
+           )
+
+         ,array(
+             'id'        => 'section-product-tabs'
+           ,'type'     => 'section'
+           ,'title'    => esc_html__( 'Product Tabs', 'mydecor' )
+           ,'subtitle' => ''
+           ,'indent'   => false
+           )
+         ,array(
+             'id'        => 'ts_prod_tabs'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Tabs', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_tabs_show_content_default'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Show Product Tabs Content By Default', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Show the content of all tabs by default and hide the tab headings', 'mydecor' )
+           ,'default'  => false
+           )
+         ,array(
+             'id'        => 'ts_prod_custom_tab'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Custom Tab', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_custom_tab_title'
+           ,'type'     => 'text'
+           ,'title'    => esc_html__( 'Product Custom Tab Title', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'default'  => 'Custom tab'
+           )
+         ,array(
+             'id'        => 'ts_prod_custom_tab_content'
+           ,'type'     => 'editor'
+           ,'title'    => esc_html__( 'Product Custom Tab Content', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'default'  => esc_html__( 'Your custom content goes here. You can add the content for individual product', 'mydecor' )
+           ,'args'     => array(
+               'wpautop'        => false
+             ,'media_buttons' => true
+             ,'textarea_rows' => 5
+             ,'teeny'         => false
+             ,'quicktags'     => true
+             )
+           )
+
+         ,array(
+             'id'        => 'section-ads-banner'
+           ,'type'     => 'section'
+           ,'title'    => esc_html__( 'Ads Banner', 'mydecor' )
+           ,'subtitle' => ''
+           ,'indent'   => false
+           )
+         ,array(
+             'id'        => 'ts_prod_ads_banner'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Ads Banner', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_ads_banner_content'
+           ,'type'     => 'editor'
+           ,'title'    => esc_html__( 'Ads Banner Content', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'default'  => ''
+           ,'args'     => array(
+               'wpautop'        => false
+             ,'media_buttons' => true
+             ,'textarea_rows' => 5
+             ,'teeny'         => false
+             ,'quicktags'     => true
+             )
+           )
+
+         ,array(
+             'id'        => 'section-related-up-sell-products'
+           ,'type'     => 'section'
+           ,'title'    => esc_html__( 'Related - Up-Sell Products', 'mydecor' )
+           ,'subtitle' => ''
+           ,'indent'   => false
+           )
+         ,array(
+             'id'        => 'ts_prod_upsells'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Up-Sell Products', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_related'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Related Products', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         )
+
+        ));
+    }
+    public function colorsScheme(){
+
+        \Redux::setSection(  $this->opt_name, array(
+          'title'  => __( 'Color Scheme ', 'CAKE_BAKERY' ),
+          'id'     => 'color_schema',
+          'icon'   => 'el el-brush',
+         'fields'=> array(
+
+         array(
+             'id'        => 'section-general-colors'
+           ,'type'     => 'section'
+           ,'title'    => esc_html__( 'General Colors', 'mydecor' )
+           ,'subtitle' => ''
+           ,'indent'   => false
+           )
+         ,array(
+             'id'      => 'info-primary-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Primary Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_primary_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Primary Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_text_color_in_bg_primary'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Text Color In Background Primary Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'      => 'info-main-content-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Main Content Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_main_content_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Main Content Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#707070'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_text_light_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Text Light Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#999999'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_text_bold_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Text Bold Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_text_highlight_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Text Highlight Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_link_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Link Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_link_color_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Link Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#e5e5e5'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'      => 'info-input-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Input Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_input_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Input - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_input_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Input - Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#e5e5e5'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_input_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Input - Text Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_input_border_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Input - Border Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#d1d1d1'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'      => 'info-button-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Button Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_button_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Button - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_button_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Button - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 0
+             )
+           )
+         ,array(
+             'id'       => 'ts_button_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Button - Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_button_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Button - Text Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_button_background_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Button - Background Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_button_border_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Button - Border Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'      => 'info-breadcrumb-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Breadcrumb Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_breadcrumb_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Breadcrumb - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#707070'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_breadcrumb_heading_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Breadcrumb - Heading Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_breadcrumb_link_color_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Breadcrumb - Link Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_breadcrumb_img_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Breadcrumb Has Background Image - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_breadcrumb_img_heading_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Breadcrumb Has Background Image - Heading Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_breadcrumb_img_link_color_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Breadcrumb Has Background Image - Link Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_breadcrumb_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Breadcrumb - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_breadcrumb_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Breadcrumb - Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#e5e5e5'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'      => 'info-shop-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Shop Page Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_shop_categories_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Shop Categories Background Colors', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#f6f5f6'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'        => 'section-header-colors'
+           ,'type'     => 'section'
+           ,'title'    => esc_html__( 'Header Colors', 'mydecor' )
+           ,'subtitle' => ''
+           ,'indent'   => false
+           )
+         ,array(
+             'id'      => 'info-middle-header-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Middle Header Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_middle_header_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Middle Header - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_middle_header_icon_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Middle Header - Icon Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_middle_header_icon_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Middle Header - Icon Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#e5e5e5'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_middle_header_icon_color_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Middle Header - Icon Hover Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_middle_header_icon_border_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Middle Header - Icon Border Hover Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'      => 'info-header-cart-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Header Cart Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_header_cart_number_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Number Of Cart Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_header_cart_number_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Number Of Cart Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'      => 'info-header-search-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Header Search Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_header_search_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Search - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#707070'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_header_search_placeholder_text'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Search Placeholder - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#999999'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_header_search_icon_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Search - Icon Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_header_search_icon_hover_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Search - Icon Hover Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_header_search_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Search - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#f6f5f6'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_header_search_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Search - Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#f6f5f6'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'      => 'info-bottom-header-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Bottom Header Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_bottom_header_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Bottom Header - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_bottom_header_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Bottom Header - Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#e5e5e5'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'        => 'section-menu-colors'
+           ,'type'     => 'section'
+           ,'title'    => esc_html__( 'Menu Colors', 'mydecor' )
+           ,'subtitle' => ''
+           ,'indent'   => false
+           )
+         ,array(
+             'id'       => 'ts_menu_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_menu_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu - Text Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'      => 'info-sub-menu-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Sub Menu Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_sub_menu_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Sub Menu - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#707070'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_sub_menu_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Sub Menu - Text Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_sub_menu_heading_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Sub Menu - Heading Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_sub_menu_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Sub Menu - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'      => 'info-vertical-menu-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Vertical Menu Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_vertical_icon_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Vertical Menu - Icon Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_vertical_menu_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Vertical Menu - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_vertical_menu_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Vertical Menu - Text Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_vertical_menu_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Vertical Menu - Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#e5e5e5'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_vertical_menu_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Vertical Menu - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_vertical_sub_menu_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Vertical Sub Menu - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#707070'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_vertical_sub_menu_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Vertical Sub Menu - Text Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'      => 'info-header-mobile-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Menu Header Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_header_mobile_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Mobile - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_header_mobile_icon_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Mobile - Icon Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_header_mobile_cart_number_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Mobile - Cart Number Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_header_mobile_cart_number_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Header Mobile - Cart Number Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'      => 'info-menu-mobile-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Menu Mobile Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_tab_menu_mobile_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu Tab Mobile - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_tab_menu_mobile_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu Tab Mobile - Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_tab_menu_mobile_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu Tab Mobile - Text Hover Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_tab_menu_mobile_background_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu Tab Mobile - Background Hover Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_menu_mobile_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu Mobile - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_menu_mobile_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu Mobile - Text Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_menu_mobile_heading_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu Mobile - Heading Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_menu_mobile_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu Mobile - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_menu_mobile_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Menu Mobile - Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#e5e5e5'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_bottom_menu_mobile_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Bottom Menu Mobile - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#f6f5f6'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_bottom_menu_mobile_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Bottom Menu Mobile - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#707070'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'        => 'section-footer-colors'
+           ,'type'     => 'section'
+           ,'title'    => esc_html__( 'Footer Colors', 'mydecor' )
+           ,'subtitle' => ''
+           ,'indent'   => false
+           )
+         ,array(
+             'id'       => 'ts_footer_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Footer - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_footer_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Footer - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#707070'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_footer_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Footer - Text Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_footer_heading_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Footer - Heading Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_footer_border_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Footer - Border Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#e5e5e5'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_footer_border_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Footer - Border Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'        => 'section-product-colors'
+           ,'type'     => 'section'
+           ,'title'    => esc_html__( 'Product Colors', 'mydecor' )
+           ,'subtitle' => ''
+           ,'indent'   => false
+           )
+         ,array(
+             'id'       => 'ts_product_name_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Product Name - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_name_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Product Name - Text Hover Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_price_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Product - Price Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#000000'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_del_price_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Product - Del Price Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#848484'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_sale_price_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Product - Sale Price Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_rating_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Product - Rating Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#f9ac00'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_rating_fill_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Product - Rating Fill Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#f9ac00'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'      => 'info-product-button-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Thumbnail Product Button Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_product_button_thumbnail_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Thumbnail Button - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_button_thumbnail_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Thumbnail Button - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_button_thumbnail_text_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Thumbnail Button - Text Color Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_button_thumbnail_background_hover'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Thumbnail Button - Background Hover', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#161616'
+             ,'alpha'	=> 1
+             )
+           )
+
+         ,array(
+             'id'      => 'info-product-label-colors'
+           ,'type'   => 'info'
+           ,'notice' => false
+           ,'title'  => esc_html__( 'Product Label Colors', 'mydecor' )
+           ,'desc'   => ''
+           )
+         ,array(
+             'id'       => 'ts_product_sale_label_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Sale Label - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_sale_label_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Sale Label - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#39b54a'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_new_label_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'New Label - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_new_label_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'New Label - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#0b5fb5'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_feature_label_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Feature Label - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_feature_label_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'Feature Label - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#a20401'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_outstock_label_text_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'OutStock Label - Text Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#ffffff'
+             ,'alpha'	=> 1
+             )
+           )
+         ,array(
+             'id'       => 'ts_product_outstock_label_background_color'
+           ,'type'     => 'color_rgba'
+           ,'title'    => esc_html__( 'OutStock Label - Background Color', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => array(
+               'color' 	=> '#989898'
+             ,'alpha'	=> 1
+             )
+           )
+         )
+
         ));
     }
 	public function removeDemo()
@@ -1228,6 +3166,16 @@ private $opt_name = '';
         wp_enqueue_style('adminOption', CAKE_BAKERY_THEME_URI .'lib/theme-options/assets/css/themeOptions.css',array(),true);
 //        wp_enqueue_style('adminOption', CAKE_BAKERY_THEME_URI .'/assets/css/admin.css',array(),true);
 
+    }
+    public function bradcrumbs_layout(){
+        $breadcrumb_layout_options = array();
+        $breadcrumb_image_folder = get_template_directory_uri() . '/lib/theme-options/assets/images/breadcrumbs/';
+        for( $i = 1; $i <= 2; $i++ ){
+            $breadcrumb_layout_options['v' . $i] = array(
+              'alt'  => sprintf(esc_html__('Breadcrumb Layout %s', 'mydecor'), $i)
+            ,'img' => $breadcrumb_image_folder . 'breadcrumb_v'.$i.'.jpg'
+            );
+        }
     }
 }
 

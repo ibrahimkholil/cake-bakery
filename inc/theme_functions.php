@@ -1,4 +1,4 @@
-<?php 
+<?php
 /*** Activate Theme ***/
 function mydecor_theme_activation(){
 	global $pagenow;
@@ -7,18 +7,18 @@ function mydecor_theme_activation(){
 		if( get_option( 'woocommerce_single_image_width' ) === false ){
 			/* Single Image */
 			update_option('woocommerce_single_image_width', 600);
-			
+
 			/* Thumbnail Image */
 			update_option('woocommerce_thumbnail_image_width', 450);
 			update_option('woocommerce_thumbnail_cropping', 'custom');
 			update_option('woocommerce_thumbnail_cropping_custom_width', 450);
 			update_option('woocommerce_thumbnail_cropping_custom_height', 450);
 		}
-		
+
 		if( get_option( 'yith_woocompare_image_size' ) === false ){
 			update_option( 'yith_woocompare_image_size', array( 'width' => '450', 'height' => '450', 'crop' => 1 ) );
 		}
-		
+
 		$elementor_cpt_support = get_option( 'elementor_cpt_support', array( 'page', 'post' ) );
 		if( !in_array( 'ts_footer_block', $elementor_cpt_support ) ){
 			$elementor_cpt_support[] = 'ts_footer_block';
@@ -35,35 +35,35 @@ add_action('admin_init', 'mydecor_theme_activation');
 function mydecor_theme_setup(){
 	/* Add editor-style.css file*/
 	add_editor_style();
-	
+
 	/* Add Theme Support */
-	add_theme_support( 'post-formats', array( 'audio', 'gallery', 'quote', 'video' ) );		
-	
+	add_theme_support( 'post-formats', array( 'audio', 'gallery', 'quote', 'video' ) );
+
 	add_theme_support( 'post-thumbnails' );
-	
+
 	add_theme_support( 'automatic-feed-links' );
-	
+
 	add_theme_support( 'title-tag' );
-	
+
 	add_theme_support( 'custom-header' );
-	
+
 	$defaults = array(
 		'default-color'         => ''
 		,'default-image'        => ''
 	);
 	add_theme_support( 'custom-background', $defaults );
-	
+
 	add_theme_support( 'woocommerce' );
-	
+
 	add_theme_support( 'wc-product-gallery-slider' );
-	
+
 	remove_theme_support( 'widgets-block-editor' );
-	
+
 	if ( ! isset( $content_width ) ){ $content_width = 1200; }
-	
+
 	/* Translation */
 	load_theme_textdomain( 'mydecor', get_template_directory() . '/languages' );
-	
+
 	/* Register Menu Location */
 	register_nav_menus( array(
 		'primary' => esc_html__( 'Primary Navigation', 'mydecor' ),
@@ -90,9 +90,9 @@ function mydecor_support_wc_product_gallery_lightbox(){
 /*** Add Image Size ***/
 function mydecor_add_image_size(){
 	add_image_size('mydecor_menu_icon_thumb', (int) mydecor_get_theme_options('ts_menu_thumb_width'), (int) mydecor_get_theme_options('ts_menu_thumb_height'), true);
-	
+
 	add_image_size('mydecor_blog_thumb', 1300, 0, false);
-	
+
 	add_image_size('mydecor_product_cat', 700, 700, true);
 }
 add_action('init', 'mydecor_add_image_size');
@@ -116,51 +116,51 @@ function mydecor_get_theme_version(){
 /*** Register Front End Scripts  ***/
 function mydecor_register_scripts(){
 	$theme_version = mydecor_get_theme_version();
-	
+
 	wp_enqueue_style( 'font-awesome-5', get_template_directory_uri() . '/css/fontawesome.min.css', array(), $theme_version );
-	
+
 	wp_enqueue_style( 'font-themify-icon', get_template_directory_uri() . '/css/themify-icons.css', array(), $theme_version );
-	
+
 	wp_enqueue_style( 'mydecor-reset', get_template_directory_uri() . '/css/reset.css', array(), $theme_version );
-	
+
 	wp_enqueue_style( 'mydecor-style', get_stylesheet_uri(), array(), $theme_version );
-	
+
 	if( !get_option('ts_load_dynamic_style') ){
 		wp_enqueue_style( 'mydecor-font-color', get_template_directory_uri() . '/css/font-color.css', array(), $theme_version );
 	}
-	
+
 	if( mydecor_load_dokan_style() ){
 		wp_enqueue_style( 'mydecor-dokan', get_template_directory_uri() . '/css/dokan.css', array(), $theme_version );
 	}
-	
+
 	wp_enqueue_style( 'mydecor-responsive', get_template_directory_uri() . '/css/responsive.css', array(), $theme_version );
-	
+
 	wp_enqueue_style( 'owl-carousel', get_template_directory_uri() . '/css/owl.carousel.css', array(), $theme_version );
-	
+
 	if( mydecor_get_theme_options('ts_enable_rtl') ){
 		wp_enqueue_style( 'mydecor-rtl', get_template_directory_uri() . '/css/rtl.css', array(), $theme_version );
 	}
-	
+
 	if( mydecor_enable_loading_screen() ){
 		wp_enqueue_script( 'mydecor-loading-screen', get_template_directory_uri() . '/js/loading-screen.js', array('jquery'), $theme_version, false );
 		wp_localize_script( 'mydecor-loading-screen', 'ts_loading_screen_opt', array('loading_image' => mydecor_get_loading_screen_image()) );
 	}
-	
+
 	wp_enqueue_script( 'owl-carousel', get_template_directory_uri() . '/js/owl.carousel.min.js', array(), $theme_version, true );
-	
+
 	wp_enqueue_script( 'mydecor-script', get_template_directory_uri() . '/js/main.js', array('jquery'), $theme_version, true );
-	
+
 	if( wp_is_mobile() && mydecor_get_theme_options('ts_add_to_cart_effect') == 'fly_to_cart' ){
 		mydecor_change_theme_options('ts_add_to_cart_effect', '');
 	}
-	
+
 	if( defined('ICL_LANGUAGE_CODE') ){
 		$ajax_url = admin_url('admin-ajax.php?lang='.ICL_LANGUAGE_CODE, 'relative');
 	}
 	else{
 		$ajax_url = admin_url('admin-ajax.php', 'relative');
 	}
-	
+
 	$script_params = array(
 		'ajax_url'					=> $ajax_url
 		,'sticky_header'			=> (int)mydecor_get_theme_options('ts_enable_sticky_header')
@@ -186,36 +186,36 @@ function mydecor_register_scripts(){
 		,'zoom_options'				=> apply_filters( 'mydecor_quickshop_product_zoom_options', array() )
 		,'product_name_min_height'	=> apply_filters( 'mydecor_product_name_min_height', 1 )
 	);
-	
+
 	wp_localize_script( 'mydecor-script', 'mydecor_params', $script_params );
-	
+
 	if( is_singular('product') ){
 		wp_enqueue_script( 'mydecor-single-product', get_template_directory_uri() . '/js/single-product.js', array('jquery'), $theme_version, true );
 	}
-	
+
 	wp_register_script( 'threesixty', get_template_directory_uri() . '/js/threesixty.js', array(), $theme_version, true );
-	
+
 	if( !wp_is_mobile() && mydecor_get_theme_options('ts_smooth_scroll') ){
 		wp_enqueue_script( 'smooth-scroll', get_template_directory_uri() . '/js/SmoothScroll.min.js', array(), $theme_version, true );
 	}
-	
+
 	if( mydecor_get_theme_options('ts_enable_sticky_header') ){
 		wp_enqueue_script( 'jquery-sticky', get_template_directory_uri() . '/js/jquery.sticky.js', array(), $theme_version, true );
 	}
-	
+
 	if( ( is_tax( get_object_taxonomies( 'product' ) ) || is_post_type_archive('product') ) && mydecor_get_theme_options('ts_prod_cat_loading_type') != 'default' ){
 		wp_enqueue_script( 'mydecor-shop-load-more', get_template_directory_uri() . '/js/shop-load-more.js', array(), $theme_version, true );
 	}
-	
-	if( is_singular() && comments_open() && get_option( 'thread_comments' ) ){ 	
+
+	if( is_singular() && comments_open() && get_option( 'thread_comments' ) ){
 		wp_enqueue_script( 'comment-reply' );
 	}
-	
+
 	/* Load default google fonts */
 	if( !class_exists('ReduxFramework') ){
 		wp_enqueue_style( 'mydecor-google-fonts', '//fonts.googleapis.com/css?family=Jost:400,500,600' );
 	}
-	
+
 	/* Custom JS */
 	if( $custom_js = mydecor_get_theme_options('ts_custom_javascript_code') ){
 		wp_add_inline_script( 'mydecor-script', stripslashes( trim( $custom_js ) ) );
@@ -230,9 +230,9 @@ function mydecor_enable_loading_screen(){
 	if( empty($theme_options['ts_loading_screen']) ){
 		return false;
 	}
-	
+
 	$enabled = false;
-	
+
 	$loading_screen_in = $theme_options['ts_display_loading_screen_in'];
 	switch( $loading_screen_in ){
 		case 'all-pages':
@@ -288,7 +288,7 @@ function mydecor_register_custom_style(){
 	$filename_dir = trailingslashit($upload_dir['basedir']) . $theme_name . '.css';
 
 	$custom_css = mydecor_get_theme_options('ts_custom_css_code');
-	if( file_exists( $filename_dir ) ){ 
+	if( file_exists( $filename_dir ) ){
 		wp_enqueue_style( 'mydecor-dynamic-css', $filename, array(), mydecor_get_last_save_theme_options() );
 		if( $custom_css ){
 			wp_add_inline_style( 'mydecor-dynamic-css', $custom_css );
@@ -327,15 +327,15 @@ function mydecor_add_font_style_to_compare_popup(){
 /*** Register Back End Scripts ***/
 function mydecor_register_admin_scripts(){
 	$theme_version = mydecor_get_theme_version();
-	
+
 	wp_enqueue_media();
-	
+
 	wp_enqueue_style( 'font-awesome-5', get_template_directory_uri() . '/css/fontawesome.min.css', array(), $theme_version );
-	
+
 	wp_enqueue_style( 'mydecor-admin-style', get_template_directory_uri() . '/css/admin_style.css', array(), $theme_version );
-	
+
 	wp_enqueue_script( 'mydecor-admin-script', get_template_directory_uri() . '/js/admin_main.js', array('jquery'), $theme_version, true );
-	
+
 	$admin_texts = array(
 		'select_images' 			=> esc_html__('Select Images', 'mydecor')
 		,'use_images' 				=> esc_html__('Use images', 'mydecor')
@@ -361,7 +361,7 @@ if( !function_exists('mydecor_set_global_page_options') ){
 				$mydecor_page_options[$key] = $value[0];
 			}
 		}
-		
+
 		$default_options = array(
 							'ts_layout_fullwidth'					=> 'default'
 							,'ts_header_layout_fullwidth'			=> 1
@@ -420,9 +420,9 @@ if( !function_exists ('mydecor_get_vertical_menu_heading') ){
 				if( isset( $menu->name ) ){
 					return $menu->name;
 				}
-			}	
+			}
 		}
-		
+
 		$locations = get_nav_menu_locations();
 		if( isset($locations['vertical']) ){
 			$menu = wp_get_nav_menu_object($locations['vertical']);
@@ -453,22 +453,22 @@ if( !function_exists ('mydecor_the_excerpt_max_words') ){
 		else{
 			$excerpt = get_the_excerpt();
 		}
-			
+
 		if( $strip_tags ){
 			$excerpt = wp_strip_all_tags($excerpt);
 			$excerpt = strip_shortcodes($excerpt);
 		}
-			
+
 		if( $word_limit != -1 ){
 			$result = mydecor_string_limit_words($excerpt, $word_limit);
 			if( $result != $excerpt ){
 				$result .= $extra_str;
 			}
-		}	
+		}
 		else{
 			$result = $excerpt;
 		}
-			
+
 		if( $echo ){
 			echo do_shortcode($result);
 		}
@@ -521,31 +521,31 @@ if( !function_exists('mydecor_get_user_role') ){
 if( !function_exists('mydecor_page_layout_columns_class') ){
 	function mydecor_page_layout_columns_class($page_column, $left_sidebar_name = '', $right_sidebar_name = ''){
 		$data = array();
-		
+
 		if( empty($page_column) ){
 			$page_column = '0-1-0';
 		}
-		
+
 		$layout_config = explode('-', $page_column);
 		$left_sidebar = (int)$layout_config[0];
 		$right_sidebar = (int)$layout_config[2];
-		
+
 		if( $left_sidebar_name && !is_active_sidebar( $left_sidebar_name ) ){
 			$left_sidebar = 0;
 		}
-		
+
 		if( $right_sidebar_name && !is_active_sidebar( $right_sidebar_name ) ){
 			$right_sidebar = 0;
 		}
-		
-		$main_class = ($left_sidebar + $right_sidebar) == 2 ?'ts-col-12':( ($left_sidebar + $right_sidebar) == 1 ?'ts-col-18':'ts-col-24' );			
-		
+
+		$main_class = ($left_sidebar + $right_sidebar) == 2 ?'ts-col-12':( ($left_sidebar + $right_sidebar) == 1 ?'ts-col-18':'ts-col-24' );
+
 		$data['left_sidebar'] = $left_sidebar;
 		$data['right_sidebar'] = $right_sidebar;
 		$data['main_class'] = $main_class;
 		$data['left_sidebar_class'] = 'ts-col-6';
 		$data['right_sidebar_class'] = 'ts-col-6';
-		
+
 		return $data;
 	}
 }
@@ -600,7 +600,7 @@ if( !function_exists('mydecor_breadcrumbs') ){
 		$output = '';
 
 		$delimiter = '<span class="brn_arrow">'.$delimiter_char.'</span>';
-		
+
 		$ar_title = array(
 					'home'			=> __('Home', 'mydecor')
 					,'search' 		=> __('Search results for ', 'mydecor')
@@ -609,24 +609,24 @@ if( !function_exists('mydecor_breadcrumbs') ){
 					,'author' 		=> __('Articles posted by ', 'mydecor')
 					,'page' 		=> __('Page', 'mydecor')
 					);
-	  
+
 		$before = '<span class="current">'; /* tag before the current crumb */
 		$after = '</span>'; /* tag after the current crumb */
 		global $wp_rewrite, $post;
 		$rewriteUrl = $wp_rewrite->using_permalinks();
 		if( !is_home() && !is_front_page() || is_paged() ){
 			$output .= '<div class="breadcrumbs"><div class="breadcrumbs-container">';
-	 
-			$homeLink = esc_url( home_url('/') ); 
+
+			$homeLink = esc_url( home_url('/') );
 			$output .= '<a href="' . $homeLink . '">' . $ar_title['home'] . '</a> ' . $delimiter . ' ';
-	 
+
 			if( is_category() ){
 				global $wp_query;
 				$cat_obj = $wp_query->get_queried_object();
 				$thisCat = $cat_obj->term_id;
 				$thisCat = get_category($thisCat);
 				$parentCat = get_category($thisCat->parent);
-				if( $thisCat->parent != 0 ){ 
+				if( $thisCat->parent != 0 ){
 					$output .= get_category_parents($parentCat, true, ' ' . $delimiter . ' ');
 				}
 				$output .= $before . single_cat_title('', false) . $after;
@@ -684,8 +684,8 @@ if( !function_exists('mydecor_breadcrumbs') ){
 						$output .= '<a href="' . (isset($portfolio_url)?$portfolio_url:$homeLink . $slug['slug'] . '/') . '">' . $post_type_name . '</a> ' . $delimiter . ' ';
 					}else{
 						$output .= '<a href="' . (isset($portfolio_url)?$portfolio_url:$homeLink . '?post_type=' . get_post_type()) . '">' . $post_type_name . '</a> ' . $delimiter . ' ';
-					}			
-					
+					}
+
 					$curTaxanomy = get_query_var('taxonomy');
 					$curTerm = get_query_var( 'term' );
 					$termNow = get_term_by( 'name', $curTerm, $curTaxanomy );
@@ -740,19 +740,19 @@ if( !function_exists('mydecor_breadcrumbs') ){
 				$output .= $before . $ar_title['404'] . $after;
 			}
 			if( get_query_var('paged') || get_query_var('page') ){
-				if( is_category() || is_day() || is_month() || is_year() || is_search() || is_tag() || is_author() || is_page_template() ||  is_post_type_archive() || is_archive() ){ 
-					$output .= $before .' ('; 
+				if( is_category() || is_day() || is_month() || is_year() || is_search() || is_tag() || is_author() || is_page_template() ||  is_post_type_archive() || is_archive() ){
+					$output .= $before .' (';
 				}
 				$output .= $ar_title['page'] . ' ' . ( get_query_var('paged')?get_query_var('paged'):get_query_var('page') );
-				if( is_category() || is_day() || is_month() || is_year() || is_search() || is_tag() || is_author() || is_page_template() ||  is_post_type_archive() || is_archive() ){ 
-					$output .= ')'. $after; 
+				if( is_category() || is_day() || is_month() || is_year() || is_search() || is_tag() || is_author() || is_page_template() ||  is_post_type_archive() || is_archive() ){
+					$output .= ')'. $after;
 				}
 			}
 			$output .= '</div></div>';
 	    }
-		
+
 		echo wp_kses($output, $allowed_html);
-		
+
 		wp_reset_postdata();
 	}
 }
@@ -770,12 +770,12 @@ if( !function_exists('mydecor_breadcrumbs_title') ){
 			if( $theme_options['ts_enable_breadcrumb_background_image'] && ( $theme_options['ts_breadcrumb_layout'] == 'v2' ) ){
 				if( $breadcrumb_bg_option == '' ){ /* No Override */
 					$breadcrumb_bg = get_template_directory_uri() . '/images/bg_breadcrumb_'.$theme_options['ts_breadcrumb_layout'].'.jpg';
-				}	
+				}
 				else{
 					$breadcrumb_bg = $breadcrumb_bg_option;
 				}
 			}
-			
+
 			$style = '';
 			if( $breadcrumb_bg != '' ){
 				$style = 'style="background-image: url('. esc_url($breadcrumb_bg) .')"';
@@ -784,15 +784,15 @@ if( !function_exists('mydecor_breadcrumbs_title') ){
 				}
 			}
 			echo '<div class="'.esc_attr(implode(' ', array_filter($classes))).'" '.$style.'><div class="breadcrumb-content container"><div class="breadcrumb-title">';
-			
+
 			if( $show_breadcrumb ){
 				mydecor_breadcrumbs();
 			}
-			
+
 			if( $show_page_title ){
 				echo '<h1 class="heading-title page-title entry-title '.$extra_class_title.'">'.$page_title.'</h1>';
 			}
-			
+
 			echo '</div></div></div>';
 		}
 	}
@@ -840,7 +840,7 @@ if( !function_exists('mydecor_theme_logo') ){
 		$logo_image_mobile = is_array($theme_options['ts_logo_mobile'])?$theme_options['ts_logo_mobile']['url']:$theme_options['ts_logo_mobile'];
 		$logo_image_sticky = is_array($theme_options['ts_logo_sticky'])?$theme_options['ts_logo_sticky']['url']:$theme_options['ts_logo_sticky'];
 		$logo_text = stripslashes($theme_options['ts_text_logo']);
-		
+
 		if( !$logo_image_mobile ){
 			$logo_image_mobile = $logo_image;
 		}
@@ -856,18 +856,18 @@ if( !function_exists('mydecor_theme_logo') ){
 			<?php if( $logo_image ): ?>
 				<img src="<?php echo esc_url($logo_image); ?>" alt="<?php echo esc_attr($logo_text); ?>" title="<?php echo esc_attr($logo_text); ?>" class="normal-logo" />
 			<?php endif; ?>
-			
+
 			<?php if( $logo_image_mobile ): ?>
 				<img src="<?php echo esc_url($logo_image_mobile); ?>" alt="<?php echo esc_attr($logo_text); ?>" title="<?php echo esc_attr($logo_text); ?>" class="mobile-logo" />
 			<?php endif; ?>
-			
+
 			<?php if( $logo_image_sticky ): ?>
 				<img src="<?php echo esc_url($logo_image_sticky); ?>" alt="<?php echo esc_attr($logo_text); ?>" title="<?php echo esc_attr($logo_text); ?>" class="sticky-logo" />
 			<?php endif; ?>
-			
-			<?php 
+
+			<?php
 			if( !$logo_image ){
-				echo esc_html($logo_text); 
+				echo esc_html($logo_text);
 			}
 			?>
 			</a>
@@ -930,12 +930,12 @@ if( !function_exists('mydecor_search_form_popup') ){
 	function mydecor_search_form_popup(){
 		$base_url = home_url( '/' );
 		$heading = __('Search', 'mydecor');
-		
+
 		if( class_exists('WooCommerce') ){
 			$base_url = add_query_arg('post_type', 'product', $base_url);
 			$heading = __('Search For Products', 'mydecor');
 		}
-		
+
 		$key_words = mydecor_get_theme_options('ts_search_popular_keywords');
 		?>
 		<div id="ts-search-sidebar" class="ts-floating-sidebar">
@@ -945,9 +945,9 @@ if( !function_exists('mydecor_search_form_popup') ){
 					<span class="close"></span>
 					<div class="ts-search-by-category woocommerce">
 						<h2 class="title"><?php echo esc_html( $heading ); ?></h2>
-						
+
 						<?php get_search_form(); ?>
-						
+
 						<?php
 						if( $key_words ){
 							$key_words = array_map( 'trim', explode(',', $key_words) );
@@ -960,7 +960,7 @@ if( !function_exists('mydecor_search_form_popup') ){
 									$search_url = add_query_arg('s', $key_word, $base_url);
 									?>
 									<a href="<?php echo esc_url($search_url); ?>"><?php echo esc_html($key_word); ?></a>
-									<?php 
+									<?php
 								}
 								?>
 								</div>
@@ -968,7 +968,7 @@ if( !function_exists('mydecor_search_form_popup') ){
 							<?php
 						}
 						?>
-						
+
 						<div class="ts-search-result-container"></div>
 					</div>
 				</div>
@@ -984,7 +984,7 @@ add_action( 'wp_ajax_nopriv_mydecor_ajax_search', 'mydecor_ajax_search' );
 if( !function_exists('mydecor_ajax_search') ){
 	function mydecor_ajax_search(){
 		global $wpdb, $post;
-		
+
 		$search_for_product = class_exists('WooCommerce');
 		if( $search_for_product ){
 			$taxonomy = 'product_cat';
@@ -994,12 +994,12 @@ if( !function_exists('mydecor_ajax_search') ){
 			$taxonomy = 'category';
 			$post_type = 'post';
 		}
-		
+
 		$num_result = (int)mydecor_get_theme_options('ts_ajax_search_number_result');
-		
+
 		$search_string = stripslashes($_POST['search_string']);
 		$category = isset($_POST['category'])? $_POST['category']: '';
-		
+
 		$args = array(
 			'post_type'			=> $post_type
 			,'post_status'		=> 'publish'
@@ -1007,12 +1007,12 @@ if( !function_exists('mydecor_ajax_search') ){
 			,'posts_per_page'	=> $num_result
 			,'tax_query'		=> array()
 		);
-		
+
 		if( $search_for_product ){
 			$args['meta_query'] = WC()->query->get_meta_query();
 			$args['tax_query'] = WC()->query->get_tax_query();
 		}
-		
+
 		if( $category != '' ){
 			$args['tax_query'][] = array(
 					'taxonomy'  => $taxonomy
@@ -1020,20 +1020,20 @@ if( !function_exists('mydecor_ajax_search') ){
 					,'field'	=> 'slug'
 				);
 		}
-		
+
 		$results = new WP_Query($args);
-		
+
 		if( $results->have_posts() ){
 			$extra_class = '';
 			if( isset($results->post_count, $results->found_posts) && $results->found_posts > $results->post_count ){
 				$extra_class = 'has-view-all';
 			}
-			
+
 			$html = '<ul class="product_list_widget '.$extra_class.'">';
 			while( $results->have_posts() ){
 				$results->the_post();
 				$link = get_permalink($post->ID);
-				
+
 				$image = '';
 				if( $post_type == 'product' ){
 					$product = wc_get_product($post->ID);
@@ -1042,7 +1042,7 @@ if( !function_exists('mydecor_ajax_search') ){
 				else if( has_post_thumbnail($post->ID) ){
 					$image = get_the_post_thumbnail($post->ID, 'thumbnail');
 				}
-				
+
 				$html .= '<li>';
 					$html .= '<div class="ts-wg-thumbnail">';
 						$html .= '<a href="'.esc_url($link).'">'. $image .'</a>';
@@ -1058,24 +1058,24 @@ if( !function_exists('mydecor_ajax_search') ){
 				$html .= '</li>';
 			}
 			$html .= '</ul>';
-			
+
 			if( isset($results->post_count, $results->found_posts) && $results->found_posts > $results->post_count ){
 				$view_all_text = sprintf( esc_html__('View all %d results', 'mydecor'), $results->found_posts );
-				
+
 				$html .= '<div class="view-all-wrapper">';
 					$html .= '<a class="button button-border-2" href="#">'. $view_all_text .'</a>';
 				$html .= '</div>';
 			}
-			
+
 			wp_reset_postdata();
-			
+
 			$return = array();
 			$html = '<div class="search-content">'.$html.'</div>';
 			$return['html'] = $html;
 			$return['search_string'] = $search_string;
 			die( json_encode($return) );
 		}
-		
+
 		$return = array();
 		$return['html'] = '<p>'.esc_html__('No products were found', 'mydecor').'</p>';
 		$return['search_string'] = $search_string;
@@ -1108,8 +1108,8 @@ if( !function_exists('mydecor_get_post_comment_count') ){
 		if( !$post_id ){
 			$post_id = $post->ID;
 		}
-		
-		$comments_count = wp_count_comments($post_id); 
+
+		$comments_count = wp_count_comments($post_id);
 		return $comments_count->approved;
 	}
 }
@@ -1118,7 +1118,7 @@ if( !function_exists('mydecor_get_post_comment_count') ){
 add_filter('woocommerce_get_catalog_ordering_args', 'mydecor_woocommerce_get_catalog_ordering_args_filter');
 if( !function_exists('mydecor_woocommerce_get_catalog_ordering_args_filter') ){
 	function mydecor_woocommerce_get_catalog_ordering_args_filter( $args ){
-		if( is_search() && !isset($_GET['orderby']) && get_option( 'woocommerce_default_catalog_orderby' ) == 'menu_order' 
+		if( is_search() && !isset($_GET['orderby']) && get_option( 'woocommerce_default_catalog_orderby' ) == 'menu_order'
 			&& mydecor_get_theme_options('ts_ajax_search') ){
 			$args['orderby'] = '';
 			$args['order'] = '';
@@ -1190,154 +1190,6 @@ function mydecor_ajax_add_to_cart_message(){
 	}
 }
 
-/* Support Dokan */
-function mydecor_load_dokan_style(){
-	if( !class_exists('WeDevs_Dokan') ){
-		return false;
-	}
-	if( ( function_exists('dokan_is_store_page') && dokan_is_store_page() ) 
-		|| ( function_exists('dokan_is_product_edit_page') && dokan_is_product_edit_page() )
-		|| ( function_exists('dokan_is_seller_dashboard') && dokan_is_seller_dashboard() )
-		|| ( function_exists('dokan_is_store_review_page') && dokan_is_store_review_page() )
-		|| ( function_exists('dokan_is_store_listing') && dokan_is_store_listing() )
-		|| apply_filters( 'mydecor_forced_load_dokan_style', false ) ){
-		return true;	
-	}
-	return false;
-}
 
-add_action('dokan_dashboard_wrap_before', 'mydecor_dokan_dashboard_wrap_before', 10, 2);
-add_action('dokan_edit_product_wrap_before', 'mydecor_dokan_dashboard_wrap_before', 10, 2);
-function mydecor_dokan_dashboard_wrap_before( $post, $post_id ){
-	if( isset( $_GET['product_id'] ) ){
-		return;
-	}
-	mydecor_breadcrumbs_title(true, true, get_the_title());
-	?>
-	<div class="page-container show_breadcrumb_<?php echo mydecor_get_theme_options('ts_breadcrumb_layout') ?>">
-		<div id="main-content" class="ts-col-24">
-	<?php
-}
 
-add_action('dokan_dashboard_wrap_after', 'mydecor_dokan_dashboard_wrap_after', 10, 2);
-add_action('dokan_edit_product_wrap_after', 'mydecor_dokan_dashboard_wrap_after', 10, 2);
-function mydecor_dokan_dashboard_wrap_after( $post, $post_id ){
-	if( isset( $_GET['product_id'] ) ){
-		return;
-	}
-	?>
-		</div>
-	</div>
-	<?php
-}
-
-/* Install Required Plugins */
-add_action( 'tgmpa_register', 'mydecor_register_required_plugins' );
-function mydecor_register_required_plugins(){
-	$plugin_dir_path = get_template_directory() . '/framework/plugins/';
-    $plugins = array(
-
-        array(
-            'name'                => 'ThemeSky'
-            ,'slug'               => 'themesky'
-            ,'source'             => $plugin_dir_path . 'themesky.zip'
-            ,'required'           => true
-            ,'version'            => '1.0.0'
-            ,'external_url'       => ''
-        )
-		,array(
-            'name'                => 'One Click Demo Import'
-            ,'slug'               => 'one-click-demo-import'
-			,'source'             => 'https://downloads.wordpress.org/plugin/one-click-demo-import.3.0.2.zip'
-            ,'required'           => false
-			,'version'            => '3.0.2'
-            ,'external_url'       => ''
-        )
-		,array(
-            'name'                => 'Redux Framework'
-            ,'slug'               => 'redux-framework'
-			,'source'             => 'https://downloads.wordpress.org/plugin/redux-framework.4.3.11.zip'
-            ,'required'           => true
-			,'version'            => '4.3.11'
-            ,'external_url'       => ''
-        )
-		,array(
-            'name'                => 'WooCommerce'
-            ,'slug'               => 'woocommerce'
-			,'source'             => 'https://downloads.wordpress.org/plugin/woocommerce.6.2.1.zip'
-            ,'required'           => true
-			,'version'            => '6.2.1'
-            ,'external_url'       => ''
-        )
-		,array(
-            'name'                => 'Elementor'
-            ,'slug'               => 'elementor'
-			,'source'             => 'https://downloads.wordpress.org/plugin/elementor.3.5.6.zip'
-            ,'required'           => true
-			,'version'            => '3.5.6'
-            ,'external_url'       => ''
-        )
-		,array(
-            'name'                => 'Slider Revolution'
-            ,'slug'               => 'revslider'
-            ,'source'             => $plugin_dir_path . 'revslider.zip'
-            ,'required'           => false
-            ,'version'            => '6.5.17'
-            ,'external_url'       => ''
-        )
-		,array(
-            'name'                => 'Contact Form 7'
-            ,'slug'               => 'contact-form-7'
-			,'source'             => 'https://downloads.wordpress.org/plugin/contact-form-7.5.5.6.zip'
-            ,'required'           => false
-			,'version'            => '5.5.6'
-            ,'external_url'       => ''
-        )
-		,array(
-            'name'                => 'MailChimp for WordPress'
-            ,'slug'               => 'mailchimp-for-wp'
-			,'source'             => 'https://downloads.wordpress.org/plugin/mailchimp-for-wp.4.8.6.zip'
-            ,'required'           => false
-			,'version'            => '4.8.6'
-            ,'external_url'       => ''
-        )
-		,array(
-            'name'                => 'YITH WooCommerce Wishlist'
-            ,'slug'               => 'yith-woocommerce-wishlist'
-			,'source'             => 'https://downloads.wordpress.org/plugin/yith-woocommerce-wishlist.3.6.0.zip'
-            ,'required'           => false
-			,'version'            => '3.6.0'
-            ,'external_url'       => ''
-        )
-		,array(
-            'name'                => 'YITH WooCommerce Compare'
-            ,'slug'               => 'yith-woocommerce-compare'
-			,'source'             => 'https://downloads.wordpress.org/plugin/yith-woocommerce-compare.2.11.0.zip'
-            ,'required'           => false
-			,'version'            => '2.11.0'
-            ,'external_url'       => ''
-        )
-		,array(
-            'name'                => 'Photo Reviews for WooCommerce'
-            ,'slug'               => 'woo-photo-reviews'
-            ,'required'           => false
-        )
-
-    );
-
-    $config = array(
-		'id'           	=> 'tgmpa'
-		,'default_path' => ''
-		,'menu'         => 'tgmpa-install-plugins'
-		,'parent_slug'  => 'themes.php'
-		,'capability'   => 'edit_theme_options'
-		,'has_notices'  => true
-		,'dismissable'  => true
-		,'dismiss_msg'  => ''
-		,'is_automatic' => false
-		,'message'      => ''
-	);
-
-    tgmpa( $plugins, $config );
-}
 ?>

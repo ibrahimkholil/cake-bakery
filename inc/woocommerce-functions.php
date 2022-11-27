@@ -34,11 +34,11 @@ if( !function_exists('cb_header_account') ){
 
                 <?php if( !$_user_logged ): ?>
                     <a  class="login" href="<?php echo esc_url($login_url); ?>" title="<?php esc_attr_e('Login', 'cake-bakery'); ?>">
-                        <i class="fa-solid fa-user"></i>
+
                     </a>
                 <?php else: ?>
                     <a class="my-account" href="<?php echo esc_url($profile_url); ?>" title="<?php esc_attr_e('My Account', 'cake-bakery'); ?>">
-                        <i class="fa-solid fa-user"></i>
+
                     </a>
                 <?php endif; ?>
 
@@ -84,9 +84,8 @@ if( !function_exists('cb_header_cart') ){
             <?php if( $show_cart_control ): ?>
                 <div class="cart-icon">
                     <a class="cart-control" href="<?php echo esc_url($cart_url); ?>" title="<?php esc_attr_e('View your shopping cart', 'cb'); ?>">
-                        <i class="fa-solid fa-bag-shopping">
+
                             <span class="cart-number"><?php echo esc_html($cart_number) ?></span>
-                        </i>
 
 
                     </a>
@@ -208,3 +207,5 @@ function cb_update_header_wishlist() {
 
 add_action('wp_ajax_cb_update_header_wishlist', 'cb_update_header_wishlist');
 add_action('wp_ajax_nopriv_cb_update_header_wishlist', 'cb_update_header_wishlist');
+
+

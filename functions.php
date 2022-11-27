@@ -20,6 +20,7 @@ define( 'CAKE_BAKERY_THEME_URI', trailingslashit( esc_url( get_template_director
 
 // After theme setup functions
 require_once CAKE_BAKERY_THEME_DIR . '/inc/after-theme-setup.php';
+require_once CAKE_BAKERY_THEME_DIR . '/inc/theme_filters.php';
 // After theme setup functions
 require_once CAKE_BAKERY_THEME_DIR . '/inc/assets.php';
 // Theme Functions

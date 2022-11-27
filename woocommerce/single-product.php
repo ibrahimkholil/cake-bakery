@@ -13,23 +13,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-get_header(); 
+get_header();
 
-$theme_options = mydecor_get_theme_options();
+$theme_options = cb_get_theme_options();
 
 $extra_class = '';
-$page_column_class = mydecor_page_layout_columns_class($theme_options['ts_prod_layout']);
+$page_column_class = cb_page_layout_columns_class($theme_options['ts_prod_layout']);
 
 $show_breadcrumb = $theme_options['ts_prod_breadcrumb'];
 $show_page_title = $theme_options['ts_prod_title'];
 if( $show_breadcrumb || $show_page_title ){
 	$extra_class = 'show_breadcrumb_'.$theme_options['ts_breadcrumb_layout'];
 }
-mydecor_breadcrumbs_title($show_breadcrumb, $show_page_title, get_the_title());
+cb_breadcrumbs_title($show_breadcrumb, $show_page_title, get_the_title(false));
 
 ?>
 <div class="page-container <?php echo esc_attr($extra_class) ?>">
-	
+
 	<!-- Left Sidebar -->
 	<?php if( $page_column_class['left_sidebar'] ): ?>
 		<div id="left-sidebar" class="ts-sidebar <?php echo esc_attr($page_column_class['left_sidebar_class']); ?>">
@@ -39,9 +39,9 @@ mydecor_breadcrumbs_title($show_breadcrumb, $show_page_title, get_the_title());
 			<?php endif; ?>
 			</aside>
 		</div>
-	<?php endif; ?>	
-	
-	<div id="main-content" class="<?php echo esc_attr($page_column_class['main_class']); ?>">	
+	<?php endif; ?>
+
+	<div id="main-content" class="<?php echo esc_attr($page_column_class['main_class']); ?>">
 		<div id="primary" class="site-content">
 	<?php
 		/**
@@ -70,7 +70,7 @@ mydecor_breadcrumbs_title($show_breadcrumb, $show_page_title, get_the_title());
 
 		</div>
 	</div>
-	
+
 	<!-- Right Sidebar -->
 	<?php if( $page_column_class['right_sidebar'] ): ?>
 		<div id="right-sidebar" class="ts-sidebar <?php echo esc_attr($page_column_class['right_sidebar_class']); ?>">
@@ -81,7 +81,7 @@ mydecor_breadcrumbs_title($show_breadcrumb, $show_page_title, get_the_title());
 			</aside>
 		</div>
 	<?php endif; ?>
-	
+
 </div>
 
 <?php get_footer(); ?>

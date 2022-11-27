@@ -18,7 +18,7 @@ if( class_exists('WooCommerce') && !class_exists('MyDecor_Quickshop') && !wp_is_
 		}
 
 		function init(){
-//			if( !mydecor_get_theme_options('ts_enable_quickshop') ){
+//			if( !cb_get_theme_options('ts_enable_quickshop') ){
 //				return;
 //			}
 
@@ -32,7 +32,7 @@ if( class_exists('WooCommerce') && !class_exists('MyDecor_Quickshop') && !wp_is_
 		}
 
 		function add_hooks(){
-//			$theme_options = mydecor_get_theme_options();
+//			$theme_options = cb_get_theme_options();
 
 //			if( $theme_options['ts_prod_title'] ){
 				add_action('mydecor_quickshop_single_product_summary', array($this, 'product_title'), 10);
@@ -78,14 +78,14 @@ if( class_exists('WooCommerce') && !class_exists('MyDecor_Quickshop') && !wp_is_
 		}
 
 		function enqueue_scripts(){
-//			$theme_options = mydecor_get_theme_options();
-//			if( !empty($theme_options['ts_enable_quickshop']) ){
+			$theme_options = cb_get_theme_options();
+			if( !empty($theme_options['ts_enable_quickshop']) ){
 				wp_enqueue_script( 'flexslider' );
 				wp_enqueue_script( 'wc-add-to-cart-variation' );
-//				if( $theme_options['ts_prod_cloudzoom'] ){
+				if( $theme_options['ts_prod_cloudzoom'] ){
 					wp_enqueue_script( 'zoom' );
-//				}
-//			}
+				}
+			}
 		}
 
 		function add_quickshop_modal(){
