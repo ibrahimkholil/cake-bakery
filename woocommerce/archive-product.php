@@ -36,10 +36,12 @@ $extra_class = '';
 $page_column_class = cb_page_layout_columns_class($theme_options['ts_prod_cat_layout']);
 
 $show_breadcrumb = get_post_meta(wc_get_page_id( 'shop' ), 'ts_show_breadcrumb', true);
-$show_page_title = apply_filters( 'woocommerce_show_page_title', true ) && get_post_meta(wc_get_page_id( 'shop' ), 'ts_show_page_title', true);
+$show_breadcrumb = $theme_options['ts_prod_breadcrumb'];
+$show_page_title = $theme_options['ts_prod_title'];
 if( $show_breadcrumb || $show_page_title ){
-	$extra_class = 'show_breadcrumb_'.$theme_options['ts_breadcrumb_layout'];
+    $extra_class = 'show_breadcrumb_'.$theme_options['ts_breadcrumb_layout'];
 }
+
 cb_breadcrumbs_title($show_breadcrumb, $show_page_title, woocommerce_page_title(false));
 
 mydecor_shop_top_product_categories();

@@ -187,6 +187,7 @@ class Theme_Options
 		$this->colorsScheme();
 		$this->woocommerceTab();
 		$this->singleProduct();
+		$this->shopProductCategory();
 		$this->footerSection();
         $this->customScripts();
 	}
@@ -1862,6 +1863,309 @@ class Theme_Options
            ,'default'  => false
            ,'on'		=> esc_html__( 'Show', 'mydecor' )
            ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         )
+
+        ));
+    }
+    public function shopProductCategory(){
+
+
+        \Redux::setSection(  $this->opt_name, array(
+          'title'  => __( 'Shop/Product category', 'CAKE_BAKERY' ),
+          'id'     => 'shop_product-cat',
+          'icon'   => 'el el-edit',
+         'fields'=> array(
+           array(
+             'id'        => 'ts_prod_cat_layout'
+           ,'type'     => 'image_select'
+           ,'title'    => esc_html__( 'Shop/Product Category Layout', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Sidebar is only available if Filter Widget Area is disabled', 'mydecor' )
+           ,'desc'     => ''
+           ,'options'  => array(
+             '0-1-0' => array(
+               'alt'  => esc_html__('Fullwidth', 'mydecor')
+             ,'img' => CAKE_BAKERY_THEME_URI . 'lib/theme-options/assets/images/1col.png'
+             )
+           ,'1-1-0' => array(
+               'alt'  => esc_html__('Left Sidebar', 'mydecor')
+             ,'img' => CAKE_BAKERY_THEME_URI . 'lib/theme-options/assets/images/2cl.png'
+             )
+           ,'0-1-1' => array(
+               'alt'  => esc_html__('Right Sidebar', 'mydecor')
+             ,'img' => CAKE_BAKERY_THEME_URI . 'lib/theme-options/assets/images/2cr.png'
+             )
+           ,'1-1-1' => array(
+               'alt'  => esc_html__('Left & Right Sidebar', 'mydecor')
+             ,'img' => CAKE_BAKERY_THEME_URI . 'lib/theme-options/assets/images/3cm.png'
+             )
+           )
+           ,'default'  => '0-1-0'
+           )
+         ,array(
+             'id'       	=> 'ts_prod_cat_left_sidebar'
+           ,'type'     => 'select'
+           ,'title'    => esc_html__( 'Left Sidebar', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'options'  => $sidebar_options
+           ,'default'  => 'product-category-sidebar'
+           ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+           )
+         ,array(
+             'id'       	=> 'ts_prod_cat_right_sidebar'
+           ,'type'     => 'select'
+           ,'title'    => esc_html__( 'Right Sidebar', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'options'  => $sidebar_options
+           ,'default'  => 'product-category-sidebar'
+           ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+           )
+         ,array(
+             'id'       	=> 'ts_prod_cat_columns'
+           ,'type'     => 'select'
+           ,'title'    => esc_html__( 'Product Columns', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'options'  => array(
+               3	=> 3
+             ,4	=> 4
+             ,5	=> 5
+             ,6	=> 6
+             )
+           ,'default'  => '4'
+           ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_per_page'
+           ,'type'     => 'text'
+           ,'title'    => esc_html__( 'Products Per Page', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Number of products per page', 'mydecor' )
+           ,'desc'     => ''
+           ,'default'  => '20'
+           )
+         ,array(
+             'id'       	=> 'ts_prod_cat_loading_type'
+           ,'type'     => 'select'
+           ,'title'    => esc_html__( 'Product Loading Type', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'options'  => array(
+               'default'			=> esc_html__( 'Default', 'mydecor' )
+             ,'infinity-scroll'	=> esc_html__( 'Infinity Scroll', 'mydecor' )
+             ,'load-more-button'	=> esc_html__( 'Load More Button', 'mydecor' )
+             ,'ajax-pagination'	=> esc_html__( 'Ajax Pagination', 'mydecor' )
+             )
+           ,'default'  => 'load-more-button'
+           ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_per_page_dropdown'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Products Per Page Dropdown', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Allow users to select number of products per page', 'mydecor' )
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_onsale_checkbox'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Products On Sale Checkbox', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Allow users to view only the discounted products', 'mydecor' )
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_glt'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Grid/List Toggle', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'       	=> 'ts_prod_cat_glt_default'
+           ,'type'     => 'select'
+           ,'title'    => esc_html__( 'Grid/List Toggle Default', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'options'  => array(
+               'grid'	=> esc_html__( 'Grid', 'mydecor' )
+             ,'list'	=> esc_html__( 'List', 'mydecor' )
+             )
+           ,'default'  => 'grid'
+           ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+           ,'required'	=> array( 'ts_prod_cat_glt', 'equals', '1' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_quantity_input'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Quantity Input', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Show the quantity input on the List view', 'mydecor' )
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           ,'required'	=> array( 'ts_prod_cat_glt', 'equals', '1' )
+           )
+         ,array(
+             'id'        => 'ts_filter_widget_area'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Filter Widget Area', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Display Filter Widget Area on the Shop/Product Category page. If enabled, the shop sidebar will be removed', 'mydecor' )
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'       	=> 'ts_filter_widget_area_style'
+           ,'type'     => 'select'
+           ,'title'    => esc_html__( 'Filter Widget Area Style', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'options'  => array(
+               'sidebar'	=> esc_html__( 'Sidebar', 'mydecor' )
+             ,'dropdown'	=> esc_html__( 'Dropdown', 'mydecor' )
+             )
+           ,'default'  => 'sidebar'
+           ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+           ,'required'	=> array( 'ts_filter_widget_area', 'equals', '1' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_bestsellers'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Best Selling Products', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Show best selling products at the top of product category page. It only shows if total products is more than double the maximum best selling products (default is 7)', 'mydecor' )
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_thumbnail'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Thumbnail', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_label'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Label', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_brand'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Brands', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Add brands to product list on all pages', 'mydecor' )
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_cat'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Categories', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_title'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Title', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_sku'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product SKU', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_rating'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Rating', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_price'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Price', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_add_to_cart'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Add To Cart Button', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => true
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_desc'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Short Description', 'mydecor' )
+           ,'subtitle' => ''
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_desc_words'
+           ,'type'     => 'text'
+           ,'title'    => esc_html__( 'Product Short Description - Limit Words', 'mydecor' )
+           ,'subtitle' => esc_html__( 'It is also used for product shortcode', 'mydecor' )
+           ,'desc'     => ''
+           ,'default'  => '8'
+           )
+         ,array(
+             'id'        => 'ts_prod_cat_color_swatch'
+           ,'type'     => 'switch'
+           ,'title'    => esc_html__( 'Product Color Swatches', 'mydecor' )
+           ,'subtitle' => esc_html__( 'Show the color attribute of variations. The slug of the color attribute has to be "color"', 'mydecor' )
+           ,'default'  => false
+           ,'on'		=> esc_html__( 'Show', 'mydecor' )
+           ,'off'		=> esc_html__( 'Hide', 'mydecor' )
+           )
+         ,array(
+             'id'       	=> 'ts_prod_cat_number_color_swatch'
+           ,'type'     => 'select'
+           ,'title'    => esc_html__( 'Number Of Color Swatches', 'mydecor' )
+           ,'subtitle' => ''
+           ,'desc'     => ''
+           ,'options'  => array(
+               2	=> 2
+             ,3	=> 3
+             ,4	=> 4
+             ,5	=> 5
+             ,6	=> 6
+             )
+           ,'default'  => '3'
+           ,'select2'	=> array('allowClear' => false, 'minimumResultsForSearch' => 'Infinity')
+           ,'required'	=> array( 'ts_prod_cat_color_swatch', 'equals', '1' )
            )
          )
 

@@ -142,6 +142,7 @@ function mydecor_template_loop_product_label(){
 
 function mydecor_template_loop_product_thumbnail(){
 	global $product;
+//    var_dump($product);
 	$lazy_load = cb_get_theme_options('ts_prod_lazy_load') && !( defined( 'DOING_AJAX' ) && DOING_AJAX );
 	$placeholder_img_src = cb_get_theme_options('ts_prod_placeholder_img')['url'];
 

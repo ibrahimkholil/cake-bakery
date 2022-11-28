@@ -1,16 +1,15 @@
 <?php
 get_header();
-$page_options = cb_get_page_options();
+$theme_options = cb_get_theme_options();
 
 $extra_class = '';
-
-$page_column_class = cb_page_layout_columns_class($page_options['ts_page_layout']);
-
-$show_breadcrumb = ( !is_home() && !is_front_page() && $page_options['ts_show_breadcrumb'] );
-$show_page_title = ( !is_home() && !is_front_page() && $page_options['ts_show_page_title'] );
+$page_column_class = cb_page_layout_columns_class($theme_options['ts_prod_cat_layout']);
+$show_breadcrumb = $theme_options['ts_prod_breadcrumb'];
+$show_page_title = $theme_options['ts_prod_title'];
 if( $show_breadcrumb || $show_page_title ){
-    $extra_class = 'show_breadcrumb_'.cb_get_page_options('ts_breadcrumb_layout');
+    $extra_class = 'show_breadcrumb_'.$theme_options['ts_breadcrumb_layout'];
 }
+
 
 cb_breadcrumbs_title($show_breadcrumb, $show_page_title, get_the_title());
 ?>

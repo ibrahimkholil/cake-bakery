@@ -39,7 +39,12 @@ if( !function_exists('cb_get_header_template') ){
     }
 }
 
-
+function cb_change_theme_options( $key, $value ){
+    global $cb_theme_options;
+    if( isset( $cb_theme_options[$key] ) ){
+        $cb_theme_options[$key] = $value;
+    }
+}
 /*
  * Logo
  */
@@ -384,7 +389,9 @@ if( !function_exists('cb_breadcrumbs_title') ){
             $classes[] = 'breadcrumb-title-wrapper breadcrumb-' . $theme_options['ts_breadcrumb_layout'];
             $classes[] = $show_breadcrumb?'':'no-breadcrumb';
             $classes[] = $show_page_title?'':'no-title';
-            if( $theme_options['.'] && ( $theme_options['ts_breadcrumb_layout'] == 'v2' ) ){
+
+            if( $theme_options['ts_enable_breadcrumb_background_image'] && ( $theme_options['ts_breadcrumb_layout'] == 'v2' ) ){
+
                 if( $breadcrumb_bg_option == '' ){ /* No Override */
                     $breadcrumb_bg = get_template_directory_uri() . '/images/bg_breadcrumb_'.$theme_options['ts_breadcrumb_layout'].'.jpg';
                 }
@@ -396,6 +403,7 @@ if( !function_exists('cb_breadcrumbs_title') ){
             $style = '';
             if( $breadcrumb_bg != '' ){
                 $style = 'style="background-image: url('. esc_url($breadcrumb_bg) .')"';
+
                 if( $theme_options['ts_breadcrumb_bg_parallax'] ){
                     $classes[] = 'ts-breadcrumb-parallax';
                 }
@@ -459,5 +467,163 @@ function mydecor_support_wc_product_gallery_lightbox(){
     }
     if( cb_get_theme_options('ts_prod_lightbox') ){
         add_theme_support( 'wc-product-gallery-lightbox' );
+    }
+}
+
+add_action('wp_footer', 'mydecor_search_form_popup');
+if( !function_exists('mydecor_search_form_popup') ){
+    function mydecor_search_form_popup(){
+        $base_url = home_url( '/' );
+        $heading = __('Search', 'mydecor');
+
+        if( class_exists('WooCommerce') ){
+            $base_url = add_query_arg('post_type', 'product', $base_url);
+            $heading = __('Search For Products', 'mydecor');
+        }
+
+        $key_words = cb_get_theme_options('ts_search_popular_keywords');
+        ?>
+        <div id="ts-search-sidebar" class="ts-floating-sidebar">
+            <div class="overlay"></div>
+            <div class="ts-sidebar-content">
+                <div class="container">
+                    <span class="close"></span>
+                    <div class="ts-search-by-category woocommerce">
+                        <h2 class="title"><?php echo esc_html( $heading ); ?></h2>
+
+                        <?php get_search_form(); ?>
+
+                        <?php
+                        if( $key_words ){
+                            $key_words = array_map( 'trim', explode(',', $key_words) );
+                            ?>
+                            <div class="popular-searches">
+                                <h6><?php esc_html_e('Popular searches', 'mydecor'); ?></h6>
+                                <div>
+                                    <?php
+                                    foreach( $key_words as $key_word ){
+                                        $search_url = add_query_arg('s', $key_word, $base_url);
+                                        ?>
+                                        <a href="<?php echo esc_url($search_url); ?>"><?php echo esc_html($key_word); ?></a>
+                                        <?php
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                            <?php
+                        }
+                        ?>
+
+                        <div class="ts-search-result-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+}
+
+/* Ajax search */
+add_action( 'wp_ajax_mydecor_ajax_search', 'mydecor_ajax_search' );
+add_action( 'wp_ajax_nopriv_mydecor_ajax_search', 'mydecor_ajax_search' );
+if( !function_exists('mydecor_ajax_search') ){
+    function mydecor_ajax_search(){
+        global $wpdb, $post;
+
+        $search_for_product = class_exists('WooCommerce');
+        if( $search_for_product ){
+            $taxonomy = 'product_cat';
+            $post_type = 'product';
+        }
+        else{
+            $taxonomy = 'category';
+            $post_type = 'post';
+        }
+
+        $num_result = (int)cb_get_theme_options('ts_ajax_search_number_result');
+
+        $search_string = stripslashes($_POST['search_string']);
+        $category = isset($_POST['category'])? $_POST['category']: '';
+
+        $args = array(
+          'post_type'			=> $post_type
+        ,'post_status'		=> 'publish'
+        ,'s'				=> $search_string
+        ,'posts_per_page'	=> $num_result
+        ,'tax_query'		=> array()
+        );
+
+        if( $search_for_product ){
+            $args['meta_query'] = WC()->query->get_meta_query();
+            $args['tax_query'] = WC()->query->get_tax_query();
+        }
+
+        if( $category != '' ){
+            $args['tax_query'][] = array(
+              'taxonomy'  => $taxonomy
+            ,'terms'	=> $category
+            ,'field'	=> 'slug'
+            );
+        }
+
+        $results = new WP_Query($args);
+
+        if( $results->have_posts() ){
+            $extra_class = '';
+            if( isset($results->post_count, $results->found_posts) && $results->found_posts > $results->post_count ){
+                $extra_class = 'has-view-all';
+            }
+
+            $html = '<ul class="product_list_widget '.$extra_class.'">';
+            while( $results->have_posts() ){
+                $results->the_post();
+                $link = get_permalink($post->ID);
+
+                $image = '';
+                if( $post_type == 'product' ){
+                    $product = wc_get_product($post->ID);
+                    $image = $product->get_image();
+                }
+                else if( has_post_thumbnail($post->ID) ){
+                    $image = get_the_post_thumbnail($post->ID, 'thumbnail');
+                }
+
+                $html .= '<li>';
+                $html .= '<div class="ts-wg-thumbnail">';
+                $html .= '<a href="'.esc_url($link).'">'. $image .'</a>';
+                $html .= '</div>';
+                $html .= '<div class="ts-wg-meta">';
+                $html .= '<a href="'.esc_url($link).'" class="title">'. mydecor_search_highlight_string($post->post_title, $search_string) .'</a>';
+                if( $post_type == 'product' ){
+                    if( $price_html = $product->get_price_html() ){
+                        $html .= '<span class="price">'. $price_html .'</span>';
+                    }
+                }
+                $html .= '</div>';
+                $html .= '</li>';
+            }
+            $html .= '</ul>';
+
+            if( isset($results->post_count, $results->found_posts) && $results->found_posts > $results->post_count ){
+                $view_all_text = sprintf( esc_html__('View all %d results', 'mydecor'), $results->found_posts );
+
+                $html .= '<div class="view-all-wrapper">';
+                $html .= '<a class="button button-border-2" href="#">'. $view_all_text .'</a>';
+                $html .= '</div>';
+            }
+
+            wp_reset_postdata();
+
+            $return = array();
+            $html = '<div class="search-content">'.$html.'</div>';
+            $return['html'] = $html;
+            $return['search_string'] = $search_string;
+            die( json_encode($return) );
+        }
+
+        $return = array();
+        $return['html'] = '<p>'.esc_html__('No products were found', 'mydecor').'</p>';
+        $return['search_string'] = $search_string;
+        die( json_encode($return) );
     }
 }

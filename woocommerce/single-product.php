@@ -25,7 +25,7 @@ $show_page_title = $theme_options['ts_prod_title'];
 if( $show_breadcrumb || $show_page_title ){
 	$extra_class = 'show_breadcrumb_'.$theme_options['ts_breadcrumb_layout'];
 }
-cb_breadcrumbs_title($show_breadcrumb, $show_page_title, get_the_title(false));
+cb_breadcrumbs_title($show_breadcrumb, $show_page_title, get_the_title());
 
 ?>
 <div class="page-container <?php echo esc_attr($extra_class) ?>">

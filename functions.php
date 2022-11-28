@@ -36,7 +36,10 @@ require_once CAKE_BAKERY_THEME_DIR . '/lib/class-wp-bootstrap-mega-navwalker.php
 // Theme Option file
 require_once CAKE_BAKERY_THEME_DIR . '/inc/woocommerce-functions.php';
 require_once CAKE_BAKERY_THEME_DIR . '/inc/quickshop.php';
+
 require_once CAKE_BAKERY_THEME_DIR . '/inc/woo_functions.php';
 require_once CAKE_BAKERY_THEME_DIR . '/inc/woo_hooks.php';
+
+require_once CAKE_BAKERY_THEME_DIR . '/inc/theme_controls.php';
 // Theme Option file
 //require_once CAKE_BAKERY_THEME_DIR . '/inc/dynamic_styles.php';
